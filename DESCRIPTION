@@ -49,8 +49,7 @@ Suggests:
     UpSetR,
     ComplexUpset,
     dplyr
-Remotes:
-    drighelli/AllenInstituteBrainData
+Remotes: github::drighelli/AllenInstituteBrainData
 URL: https://seandavi.github.io/BuildABiocWorkshop/
 BugReports: https://github.com/seandavi/BuildABiocWorkshop/issues/new/choose
 VignetteBuilder: knitr

@@ -27,7 +27,27 @@ Depends:
 Suggests: 
     knitr,
     rmarkdown,
-    pkgdown
+    pkgdown,
+    SingleCellExperiment,
+    EnsDb.Mmusculus.v79,
+    scuttle,
+    scran,
+    scDblFinder,
+    HDF5Array,
+    Seurat,
+    Azimuth,
+    SeuratData,
+    biomaRt,
+    pheatmap,
+    muscat,
+    edgeR,
+    ggplot2,
+    RUVSeq,
+    ggrepel,
+    EDASeq,
+    UpSetR,
+    ComplexUpset,
+    dplyr
 Remotes:
     drighelli/AllenInstituteBrainData
 URL: https://seandavi.github.io/BuildABiocWorkshop/

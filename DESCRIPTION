@@ -2,20 +2,10 @@ Package: SDsnRNAseq
 Title: Single Nuclei RNAseq for Sleep Deprivation
 Version: 2.0.0
 Authors@R:
-    c(person(given = "Elena",
+    person(given = "Elena",
            family = "Zuin",
            role = c("aut"),
-           email = "elena.zuin3@gmail.com"),
-    person(given = "Dario",
-       family = "Righelli",
-       role = c("aut", "cre", "mnt"),
-       email = "dario.righelli@gmail.com",
-       comment = c(ORCID = "0000-0003-1504-3583")),
-    person(given = "Davide",
-       family = "Risso",
-       role = c("aut"),
-       email = "davide.risso@unipd.it",
-       comment = c(ORCID = "0000-0001-8508-5012")))
+           email = "elena.zuin3@gmail.com")
 Description: This package summarizes the analysis for the paper (add DOI). 
 License: MIT + file LICENSE
 Encoding: UTF-8

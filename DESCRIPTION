@@ -4,8 +4,9 @@ Version: 2.0.0
 Authors@R:
     person(given = "Dario",
            family = "Righelli",
-           role = c("aut", "mnt"),
+           role = c("aut", "cre"),
            email = "dario.righelli@gmail.com")
+Mainteiner: Dario Righelli <dario.righelli@gmail.com>
 Description: This package summarizes the analysis for the paper (add DOI). 
 License: MIT + file LICENSE
 Encoding: UTF-8

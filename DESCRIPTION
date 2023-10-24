@@ -1,22 +1,11 @@
 Package: SDsnRNAseq
 Title: Single Nuclei RNAseq for Sleep Deprivation
 Version: 2.0.0
-Authors@R: c(
+Authors@R:
     person(given = "Elena",
            family = "Zuin",
            role = c("aut", "cre", "mnt"),
-           email = "elena.zuin3@gmail.com"),
-    person(given = "Dario",
-           family = "Righelli",
-           role = c("aut", "cre", "mnt"),
-           email = "dario.righelli@gmail.com",
-           comment = c(ORCID = "0000-0003-1504-3583")),
-    person(given = "Davide",
-           family = "Risso",
-           role = c("aut", "cre", "mnt"),
-           email = "davide.risso@unipd.it",
-           comment = c(ORCID = "0000-0001-8508-5012"))
-)
+           email = "elena.zuin3@gmail.com")
 Description: This package summarizes the analysis for the paper (add DOI). 
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -50,7 +39,4 @@ Suggests:
     ComplexUpset,
     dplyr
 Remotes: github::drighelli/AllenInstituteBrainData
-URL: https://seandavi.github.io/BuildABiocWorkshop/
-BugReports: https://github.com/seandavi/BuildABiocWorkshop/issues/new/choose
-VignetteBuilder: knitr
-DockerImage: ghcr.io/seandavi/buildabiocworkshop:latest
+

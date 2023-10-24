@@ -35,8 +35,6 @@ Suggests:
     scDblFinder,
     HDF5Array,
     Seurat,
-    Azimuth,
-    SeuratData,
     biomaRt,
     pheatmap,
     muscat,
@@ -48,7 +46,10 @@ Suggests:
     UpSetR,
     ComplexUpset,
     dplyr
-Remotes: github::drighelli/AllenInstituteBrainData
+Remotes: 
+    github::drighelli/AllenInstituteBrainData
+    github::satijalab/azimuth
+    github::satijalab/seurat-data
 URL: https://RissoLab.github.io/SDsnRNAseq/
 BugReports: https://github.com/RissoLab/SDsnRNAseq/issues/new/choose
 VignetteBuilder: knitr

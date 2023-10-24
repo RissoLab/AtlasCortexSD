@@ -39,4 +39,7 @@ Suggests:
     ComplexUpset,
     dplyr
 Remotes: github::drighelli/AllenInstituteBrainData
-
+URL: https://RissoLab.github.io/SDsnRNAseq/
+BugReports: https://github.com/RissoLab/SDsnRNAseq/issues/new/choose
+VignetteBuilder: knitr
+DockerImage: ghcr.io/drighelli/SDsnRNAseq:latest

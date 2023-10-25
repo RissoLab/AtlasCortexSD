@@ -46,7 +46,8 @@ Suggests:
     EDASeq,
     UpSetR,
     ComplexUpset,
-    dplyr
+    dplyr,
+    BiocStyle
 Remotes: 
     github::drighelli/AllenInstituteBrainData,
     github::satijalab/azimuth,

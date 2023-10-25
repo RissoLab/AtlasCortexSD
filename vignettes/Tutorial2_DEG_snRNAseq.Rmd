@@ -1,14 +1,11 @@
 ---
 title: "A Global Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex"
-font_size: 12pt
-output: pdf_document
-toc: TRUE
 date: "`r Sys.Date()`"
 #bibliography: biblio.bib
 link-citations: TRUE
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{An Example Workshop}
+  %\VignetteIndexEntry{Pseudo Bulk analysis}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -30,7 +27,9 @@ options(width=65)
 ```
 
 # Preliminaries
+
 ## Data Availability
+
 Pseudo-bulk of single-nuclear RNA-seq data is available [here]().
 
 The list of negative control genes is available [here](). These genes are not influenced by the biological effect
@@ -40,6 +39,11 @@ expressed with respect to the biological effect of interest.
 The code used in this analysis has been deposited into Github, and can be available [here]().
 
 ## Bioconductor packages
+
+```{r, echo=FALSE}
+library(BiocStyle)
+```
+
 The differential expression (DE) analysis was carried out with `r Biocpkg("edgeR")`. Remove Unwanted Variation (RUV) normalization is implemented in the `r Biocpkg("RUVSeq")` package. To normalize raw data before RUV and to visualize the Principal Component Analysis (PCA) of UQ + RUV normalization, we used the `r Biocpkg("EDASeq")` package. Some plots were visualized using the [*ggplot2*](https://cran.r-project.org/web/packages/ggplot2/index.html) package. The Upset plot was visualized using the [*UpSetR*](https://cran.r-project.org/web/packages/UpSetR/index.html) and the [*ComplexUpset*](https://cran.r-project.org/web/packages/ComplexUpset/index.html) packages.
 
 ```{r preliminaries}

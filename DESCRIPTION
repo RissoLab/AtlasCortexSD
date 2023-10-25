@@ -8,12 +8,12 @@ Authors@R:c(
            email = "elena.zuin3@gmail.com"),
     person(given = "Dario",
        family = "Righelli",
-       role = c("aut", "cre", "mnt"),
+       role = c("aut", "cre"),
        email = "dario.righelli@gmail.com",
        comment = c(ORCID = "0000-0003-1504-3583")),
-person(given = "Davide",
+    person(given = "Davide",
        family = "Risso",
-       role = c("aut", "cre", "mnt"),
+       role = c("aut"),
        email = "davide.risso@unipd.it",
        comment = c(ORCID = "0000-0001-8508-5012")))
 Maintainer: Dario Righelli <dario.righelli@gmail.com>

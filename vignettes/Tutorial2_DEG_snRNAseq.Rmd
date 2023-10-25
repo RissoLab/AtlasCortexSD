@@ -3,9 +3,14 @@ title: "A Global Transcriptional Atlas of the Effect of Sleep Loss in the Mouse 
 font_size: 12pt
 output: pdf_document
 toc: TRUE
-date: ""
+date: "`r Sys.Date()`"
 #bibliography: biblio.bib
-link-ciations: TRUE
+link-citations: TRUE
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{An Example Workshop}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, echo=FALSE, warning=FALSE}

@@ -2,8 +2,11 @@ pandoc: 3.1.1
 pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
+  Figure_1_ct: Figure_1_ct.html
   Figure_2_pb_dgea: Figure_2_pb_dgea.html
-last_built: 2023-10-26T17:40Z
+  Figure_3_bulk_de: Figure_3_bulk_de.html
+  Figure_4_tx: Figure_4_tx.html
+last_built: 2023-10-26T17:44Z
 urls:
   reference: https://RissoLab.github.io/SDsnRNAseq/reference
   article: https://RissoLab.github.io/SDsnRNAseq/articles

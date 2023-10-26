@@ -83,61 +83,48 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
+
 <div class="section level1">
-<div class="page-header"><h1 id="buildabiocworkshop">BuildABiocWorkshop<a class="anchor" aria-label="anchor" href="#buildabiocworkshop"></a>
+<div class="page-header"><h1 id="a-global-transcriptional-atlas-of-the-effect-of-sleep-loss-in-the-mouse-cortex">A Global Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex<a class="anchor" aria-label="anchor" href="#a-global-transcriptional-atlas-of-the-effect-of-sleep-loss-in-the-mouse-cortex"></a>
 </h1></div>
-<p>This package is a template for building a Bioconductor workshop. The package includes Github actions to:</p>
+<p>This repository shares all the code developed for the analysis of the “A Global Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex” paper.</p>
+<p>At the link <a href="https://rissolab.github.io/sleep-snrnaseq/" class="external-link">https://rissolab.github.io/sleep-snrnaseq/</a>, in the Articles section, it is possible to retrieve all the reports for reproducing the entire analysis.</p>
+<p>In some cases, because some of the steps are time demanding the code is reported, but not live executed. At the same time, the user has the possibility to reproduce the entire code by starting from the data released with this repository, but also running the following docker file <a href="ghcr.io/RissoLab/SDsnRNAseq:latest">ghcr.io/RissoLab/SDsnRNAseq:latest</a></p>
+</div>
+<div class="section level1">
+<h1 id="authors">Authors<a class="anchor" aria-label="anchor" href="#authors"></a>
+</h1>
+<p>Kaitlyn Ford<sup>1</sup>, Elena Zuin<sup>2</sup>, Dario Righelli<sup>2</sup>, Christine Muheim<sup>1</sup>, Elizabeth Medina<sup>1</sup>, Hannah Schoch<sup>1</sup>, Kristan Singletary<sup>1</sup>, Stephanie Hicks<sup>3</sup>, Davide Risso<sup>2</sup> and Lucia Peixoto<sup>1</sup></p>
 <ol style="list-style-type: decimal">
-<li>Set up bioconductor/bioconductor_docker:devel on Github resources</li>
-<li>Install package dependencies for your package (based on the <code>DESCRIPTION</code> file)</li>
-<li>Run <code><a href="http://r-lib.github.io/rcmdcheck/reference/rcmdcheck.html" class="external-link">rcmdcheck::rcmdcheck</a></code>
-</li>
-<li>Build a pkgdown website and push it to github pages</li>
-<li>Build a docker image with the installed package and dependencies and deploy to <a href="https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#pulling-container-images" class="external-link">the Github Container Repository</a> at the name <code>ghcr.io/gihub_user/repo_name</code>, all lowercase.</li>
+<li>Department of Translational Medicine and Physiology, Washington State University, Spokane, WA</li>
+<li>Department of Statistical Sciences, University of Padova, Italy</li>
+<li>Department of Biostatistics, Johns Hopkins Bloomberg School of Public Health, Baltimore, MD</li>
 </ol>
-<div class="section level2">
-<h2 id="responsibilities">Responsibilities<a class="anchor" aria-label="anchor" href="#responsibilities"></a>
-</h2>
-<p>Package authors are primarily responsible for:</p>
-<ol style="list-style-type: decimal">
-<li>Creating a landing site of their choosing for their workshops (a website). This website should be listed in the <code>DESCRIPTION</code> file as the <code>URL</code>.</li>
-<li>Creating a docker image that will contain workshop materials and the installed packages necessary to run those materials. The name of the resulting docker image, including “tag” if desired, should be listed in a non-standard tag, <code>DockerImage:</code> in the <code>DESCRIPTION</code> file.</li>
-</ol>
-<p>Both of those tasks can be accomplished using the Github actions included in this template package. The vignette accompanying this package describes how to accomplish both of these tasks.</p>
 </div>
-<div class="section level2">
-<h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a>
-</h2>
-<p>For detailed instructions, see the <code>How to build a workshop</code> article/vignette.</p>
+<div class="section level1">
+<h1 id="abstract">Abstract<a class="anchor" aria-label="anchor" href="#abstract"></a>
+</h1>
 </div>
-<div class="section level2">
-<h2 id="results-of-successful-deployment">Results of successful deployment<a class="anchor" aria-label="anchor" href="#results-of-successful-deployment"></a>
-</h2>
-<ul>
-<li>A working docker image that contains the installed package and dependencies.</li>
-<li>An up-to-date <code>pkgdown</code> website at <a href="https://YOURUSERNAME.github.io/YOURREPOSITORYNAME/" class="external-link uri">https://YOURUSERNAME.github.io/YOURREPOSITORYNAME/</a>
-</li>
-<li>Docker image will be tagged with <code>latest</code>, <code>sha-XXXXXX</code> where <code>XXXXXX</code> is the hash of the current <code>master</code> commit, and <code>master</code>.</li>
-</ul>
+<div class="section level1">
+<h1 id="paper">Paper<a class="anchor" aria-label="anchor" href="#paper"></a>
+</h1>
 </div>
-<div class="section level2">
-<h2 id="to-use-the-resulting-image">To use the resulting image:<a class="anchor" aria-label="anchor" href="#to-use-the-resulting-image"></a>
-</h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">-e</span> PASSWORD=<span class="op">&lt;</span>choose_a_password_for_rstudio<span class="op">&gt;</span> -p 8787:8787 YOURDOCKERIMAGENAME</span></code></pre></div>
-<p>Once running, navigate to <a href="http://localhost:8787/" class="external-link uri">http://localhost:8787/</a> and then login with <code>rstudio</code>:<code>yourchosenpassword</code>.</p>
-<p>To try with <strong>this</strong> repository docker image:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">-e</span> PASSWORD=abc <span class="at">-p</span> 8787:8787 ghcr.io/bioconductor/buildabiocworkshop</span></code></pre></div>
-<p><em>NOTE</em>: Running docker that uses the password in plain text like above exposes the password to others in a multi-user system (like a shared workstation or compute node). In practice, consider using an environment variable instead of plain text to pass along passwords and other secrets in docker command lines.</p>
+<div class="section level1">
+<h1 id="data-availability">Data Availability<a class="anchor" aria-label="anchor" href="#data-availability"></a>
+</h1>
+<p>Sequencing data have been deposited in NCBI’s Gene Expression Omnibus (GEO) under the accession number GSE211088. The bulk RNA-seq replicates (5 SD, 5 HC) were previously deposited in GEO under accession number GSE113754, and downloaded from GEO for this analysis.</p>
 </div>
-<div class="section level2">
-<h2 id="whatcha-get">Whatcha get<a class="anchor" aria-label="anchor" href="#whatcha-get"></a>
-</h2>
-<ul>
-<li><a href="https://bioconductor.github.io/BuildABiocWorkshop" class="external-link uri">https://bioconductor.github.io/BuildABiocWorkshop</a></li>
-<li>A Docker image that you can run locally, in the cloud, or (usually) even as a singularity container on HPC systems.</li>
-</ul>
+<div class="section level1">
+<h1 id="code-availability">Code Availability<a class="anchor" aria-label="anchor" href="#code-availability"></a>
+</h1>
+<p>The code used in this article can be accessed via Github through the following link: [link]. The Allen Whole Cortex &amp; Hippocampus - 10x genomics (v2021) reference dataset used for single-nuclear analysis, in a SingleCellExperiment object, has been made available at <a href="https://github.com/drighelli/AllenInstituteBrainData" class="external-link uri">https://github.com/drighelli/AllenInstituteBrainData</a>.</p>
 </div>
+<div class="section level1">
+<h1 id="acknowledgements">Acknowledgements:<a class="anchor" aria-label="anchor" href="#acknowledgements"></a>
+</h1>
+<p>This work was supported by the National Institute of General Medical Sciences (NIGMS) under project number R35GM147020 and by the National Institute of Neurological Disorders and Stroke (NINDS) under project number R56NS124805 to L.P.</p>
 </div>
+
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

@@ -63,6 +63,7 @@ library(patchwork)
 For each neuronal cell-type with more than 500 cells, the differential gene expression analysis was carried out with a negative binomial generalized linear model (GLM) on pseudo-bulk samples.
 
 ## Load data
+
 ```{r}
 # Load pseudo-bulk data, negative and positive control genes
 

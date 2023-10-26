@@ -1,4 +1,4 @@
-#' Tutorial2_DEG_snRNAseq
+#' neg_ctrl
 #' @description this dataset contains the psctrl data.frame including
 #' positive controls, neg_ntrl which is a dataframe of negative controls and
 #' pb which is a SingleCellExperiment of data in pseudo-bulk format

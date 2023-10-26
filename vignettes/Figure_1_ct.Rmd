@@ -1,0 +1,13 @@
+---
+title: "Figure_1"
+date: "`r Sys.Date()`"
+#bibliography: biblio.bib
+link-citations: TRUE
+output: 
+    rmarkdown::html_vignette:
+        code_folding: show
+vignette: >
+  %\VignetteIndexEntry{Figure 1: Cell Type Assignment}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---

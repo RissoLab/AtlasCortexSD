@@ -1,0 +1,13 @@
+---
+title: "Figure_4"
+date: "`r Sys.Date()`"
+#bibliography: biblio.bib
+link-citations: TRUE
+output: 
+    rmarkdown::html_vignette:
+        code_folding: show
+vignette: >
+  %\VignetteIndexEntry{Figure 4: Differential Transcripts Usage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---

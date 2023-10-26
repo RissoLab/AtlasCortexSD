@@ -1,0 +1,14 @@
+---
+title: "Figure_3"
+date: "`r Sys.Date()`"
+#bibliography: biblio.bib
+link-citations: TRUE
+output: 
+    rmarkdown::html_vignette:
+        code_folding: show
+vignette: >
+  %\VignetteIndexEntry{Figure 3: Bulk RNAseq Differential Expression Analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+

@@ -1,5 +1,5 @@
 Package: AtlasCortexSD
-Title: A Global Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex
+Title: Transcriptional Atlas on Mouse Cortex for SD
 Version: 2.0.0
 Authors@R: c(
     person(given = "Elena",

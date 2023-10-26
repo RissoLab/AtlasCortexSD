@@ -1,5 +1,5 @@
 Package: AtlasCortexSD
-Title: Transcriptional Atlas on Mouse Cortex for Sleep loss
+Title: Single Nuclei RNAseq for Sleep Deprivation
 Version: 2.0.0
 Authors@R: c(
     person(given = "Elena",

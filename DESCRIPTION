@@ -1,5 +1,5 @@
-Package: SDsnRNAseq
-Title: Single Nuclei RNAseq for Sleep Deprivation
+Package: AtlasCortexSD
+Title: A Global Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex
 Version: 2.0.0
 Authors@R: c(
     person(given = "Elena",
@@ -17,7 +17,9 @@ Authors@R: c(
        email = "davide.risso@unipd.it",
        comment = c(ORCID = "0000-0001-8508-5012")))
 Maintainer: Dario Righelli <dario.righelli@gmail.com>
-Description: This package summarizes the analysis for the paper (add DOI). 
+Description: This package summarizes the analysis for the paper A Global 
+Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex 
+(add DOI). 
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -52,7 +54,7 @@ Remotes:
     github::drighelli/AllenInstituteBrainData,
     github::satijalab/azimuth,
     github::satijalab/seurat-data
-URL: https://RissoLab.github.io/SDsnRNAseq/
-BugReports: https://github.com/RissoLab/SDsnRNAseq/issues/new/choose
+URL: https://RissoLab.github.io/AtlasCortexSD/
+BugReports: https://github.com/RissoLab/AtlasCortexSD/issues/new/choose
 VignetteBuilder: knitr
-DockerImage: ghcr.io/RissoLab/SDsnRNAseq:latest
+DockerImage: ghcr.io/RissoLab/AtlasCortexSDs:latest

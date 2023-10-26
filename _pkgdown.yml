@@ -1,4 +1,4 @@
-url: https://RissoLab.github.io/SDsnRNAseq
+url: https://RissoLab.github.io/AtlasCortexSD
 
 template:
   params:
@@ -13,6 +13,6 @@ home:
 navbar:
   right:
    - icon: fa-github
-     href: https://github.com/RissoLab/SDsnRNAseq
+     href: https://github.com/RissoLab/AtlasCortexSD
 
 

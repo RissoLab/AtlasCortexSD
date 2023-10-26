@@ -2,14 +2,14 @@
 
 This repository shares all the code developed for the analysis of the "A Global Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex" paper.
 
-At the link [https://rissolab.github.io/sleep-snrnaseq/](https://rissolab.github.io/sleep-snrnaseq/), in the Articles section, it is possible to retrieve all the 
+At the link [https://rissolab.github.io/AtlasCortexSD/](https://rissolab.github.io/AtlasCortexSD/), in the Articles section, it is possible to retrieve all the 
 reports for reproducing the entire analysis.
 
 In some cases, because some of the steps are time demanding the code is reported, 
 but not live executed. 
 At the same time, the user has the possibility to reproduce the entire code by 
 starting from the data released with this repository, but also running the 
-following docker file [ghcr.io/RissoLab/SDsnRNAseq:latest](ghcr.io/RissoLab/SDsnRNAseq:latest)
+following docker file [ghcr.io/RissoLab/AtlasCortexSD:latest](ghcr.io/RissoLab/v:latest)
 
 # Authors
 
@@ -29,7 +29,7 @@ Sequencing data have been deposited in NCBI’s Gene Expression Omnibus (GEO) un
 
 # Code Availability 
 
-The code used in this article can be accessed via Github through the following link: [link]. The Allen Whole Cortex & Hippocampus - 10x genomics (v2021) reference dataset used for single-nuclear analysis, in a SingleCellExperiment object, has been made available at https://github.com/drighelli/AllenInstituteBrainData. 
+The code used in this article can be accessed via Github through the following link: [link]. The Allen Whole Cortex & Hippocampus - 10x genomics (v2021) reference dataset used for single-nuclear analysis, in a SingleCellExperiment object, has been made available at [https://github.com/drighelli/AllenInstituteBrainData](https://github.com/drighelli/AllenInstituteBrainData).
 
 # Acknowledgements:
 

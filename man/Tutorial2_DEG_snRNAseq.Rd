@@ -6,7 +6,7 @@
 \alias{neg_ctrl,}
 \alias{pb,}
 \alias{posctrl}
-\title{Tutorial2_DEG_snRNAseq}
+\title{neg_ctrl}
 \description{
 this dataset contains the psctrl data.frame including
 positive controls, neg_ntrl which is a dataframe of negative controls and

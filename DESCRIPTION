@@ -57,4 +57,4 @@ Remotes:
 URL: https://RissoLab.github.io/AtlasCortexSD/
 BugReports: https://github.com/RissoLab/AtlasCortexSD/issues/new/choose
 VignetteBuilder: knitr
-DockerImage: ghcr.io/RissoLab/AtlasCortexSDs:latest
+DockerImage: ghcr.io/RissoLab/atlascortexsd:latest

@@ -1,5 +1,5 @@
 ---
-title: "Figure_2"
+title: "2. Pseudo Bulk Differential Expression Analysis"
 date: "`r Sys.Date()`"
 #bibliography: biblio.bib
 link-citations: TRUE
@@ -7,7 +7,7 @@ output:
     rmarkdown::html_vignette:
         code_folding: show
 vignette: >
-  %\VignetteIndexEntry{Figure 2: Pseudo Bulk Differential Expression Analysis}
+  %\VignetteIndexEntry{2. Pseudo Bulk Differential Expression Analysis}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

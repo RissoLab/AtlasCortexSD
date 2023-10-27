@@ -5,14 +5,16 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SDsnRNAseq • SDsnRNAseq</title>
+<title>SDsnRNAseq • AtlasCortexSD</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="bootstrap-toc.css">
 <script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
 <script src="pkgdown.js"></script><meta property="og:title" content="SDsnRNAseq">
-<meta property="og:description" content="This package summarizes the analysis for the paper (add DOI). ">
+<meta property="og:description" content="This package summarizes the analysis for the paper A Global 
+    Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex 
+    (add DOI). ">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -32,7 +34,7 @@
         <span class="icon-bar"></span>
       </button>
       <span class="navbar-brand">
-        <a class="navbar-link" href="index.html">SDsnRNAseq</a>
+        <a class="navbar-link" href="index.html">AtlasCortexSD</a>
         <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.0.0</span>
       </span>
     </div>
@@ -50,23 +52,23 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="articles/Figure_1_ct.html">Figure_1</a>
+      <a href="articles/Figure_1_ct.html">1. Cell Type Assignment</a>
     </li>
     <li>
-      <a href="articles/Figure_2_pb_dgea.html">Figure_2</a>
+      <a href="articles/Figure_2_pb_dgea.html">2. Pseudo Bulk Differential Expression Analysis</a>
     </li>
     <li>
-      <a href="articles/Figure_3_bulk_de.html">Figure_3</a>
+      <a href="articles/Figure_3_bulk_de.html">3. Bulk RNAseq Differential Expression Analysis</a>
     </li>
     <li>
-      <a href="articles/Figure_4_tx.html">Figure_4</a>
+      <a href="articles/Figure_4_tx.html">4. Differential Transcripts Usage</a>
     </li>
   </ul>
 </li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="https://github.com/RissoLab/SDsnRNAseq" class="external-link">
+  <a href="https://github.com/RissoLab/AtlasCortexSD" class="external-link">
     <span class="fa fa-github"></span>
      
   </a>
@@ -88,8 +90,8 @@
 <div class="page-header"><h1 id="a-global-transcriptional-atlas-of-the-effect-of-sleep-loss-in-the-mouse-cortex">A Global Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex<a class="anchor" aria-label="anchor" href="#a-global-transcriptional-atlas-of-the-effect-of-sleep-loss-in-the-mouse-cortex"></a>
 </h1></div>
 <p>This repository shares all the code developed for the analysis of the “A Global Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex” paper.</p>
-<p>At the link <a href="https://rissolab.github.io/sleep-snrnaseq/" class="external-link">https://rissolab.github.io/sleep-snrnaseq/</a>, in the Articles section, it is possible to retrieve all the reports for reproducing the entire analysis.</p>
-<p>In some cases, because some of the steps are time demanding the code is reported, but not live executed. At the same time, the user has the possibility to reproduce the entire code by starting from the data released with this repository, but also running the following docker file <a href="ghcr.io/RissoLab/SDsnRNAseq:latest">ghcr.io/RissoLab/SDsnRNAseq:latest</a></p>
+<p>At the link <a href="https://rissolab.github.io/AtlasCortexSD/" class="external-link">https://rissolab.github.io/AtlasCortexSD/</a>, in the Articles section, it is possible to retrieve all the reports for reproducing the entire analysis.</p>
+<p>In some cases, because some of the steps are time demanding the code is reported, but not live executed. At the same time, the user has the possibility to reproduce the entire code by starting from the data released with this repository, but also running the following docker file <a href="ghcr.io/RissoLab/v:latest">ghcr.io/RissoLab/AtlasCortexSD:latest</a></p>
 </div>
 <div class="section level1">
 <h1 id="authors">Authors<a class="anchor" aria-label="anchor" href="#authors"></a>
@@ -117,7 +119,7 @@
 <div class="section level1">
 <h1 id="code-availability">Code Availability<a class="anchor" aria-label="anchor" href="#code-availability"></a>
 </h1>
-<p>The code used in this article can be accessed via Github through the following link: [link]. The Allen Whole Cortex &amp; Hippocampus - 10x genomics (v2021) reference dataset used for single-nuclear analysis, in a SingleCellExperiment object, has been made available at <a href="https://github.com/drighelli/AllenInstituteBrainData" class="external-link uri">https://github.com/drighelli/AllenInstituteBrainData</a>.</p>
+<p>The code used in this article can be accessed via Github through the following link: [link]. The Allen Whole Cortex &amp; Hippocampus - 10x genomics (v2021) reference dataset used for single-nuclear analysis, in a SingleCellExperiment object, has been made available at <a href="https://github.com/drighelli/AllenInstituteBrainData" class="external-link">https://github.com/drighelli/AllenInstituteBrainData</a>.</p>
 </div>
 <div class="section level1">
 <h1 id="acknowledgements">Acknowledgements:<a class="anchor" aria-label="anchor" href="#acknowledgements"></a>
@@ -131,8 +133,8 @@
     <div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/RissoLab/SDsnRNAseq/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/RissoLab/SDsnRNAseq/issues/new/choose" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/RissoLab/AtlasCortexSD/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/RissoLab/AtlasCortexSD/issues/new/choose" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
@@ -148,7 +150,7 @@
 <div class="citation">
 <h2 data-toc-skip>Citation</h2>
 <ul class="list-unstyled">
-<li><a href="authors.html#citation">Citing SDsnRNAseq</a></li>
+<li><a href="authors.html#citation">Citing AtlasCortexSD</a></li>
 </ul>
 </div>
 

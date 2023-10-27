@@ -69,7 +69,7 @@ For each neuronal cell-type with more than 500 cells, the differential gene expr
 ```{r}
 # Load pseudo-bulk data, negative and positive control genes
 
-data("Tutorial2_DEG_snRNAseq", package="SDsnRNAseq")
+data("Tutorial2_DEG_snRNAseq", package="AtlasCortexSD")
 
 # load(system.file(file.path("extdata", "Tutorial2_DEG_snRNAseq.rda"), package="SDsnRNAseq"))
 ```

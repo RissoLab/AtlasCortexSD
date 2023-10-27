@@ -6,7 +6,7 @@ template:
     #ganalytics: UA-99999999-9
 
 home:
-  title: "SDsnRNAseq"
+  title: "AtlasCortexSD"
   type: inverse
 
 

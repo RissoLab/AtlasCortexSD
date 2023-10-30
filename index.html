@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SDsnRNAseq • AtlasCortexSD</title>
+<title>AtlasCortexSD • AtlasCortexSD</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="bootstrap-toc.css">
 <script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
-<script src="pkgdown.js"></script><meta property="og:title" content="SDsnRNAseq">
+<script src="pkgdown.js"></script><meta property="og:title" content="AtlasCortexSD">
 <meta property="og:description" content="This package summarizes the analysis for the paper A Global 
     Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex 
     (add DOI). ">
@@ -52,16 +52,16 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="articles/Figure_1_ct.html">1. Cell Type Assignment</a>
+      <a href="articles/1_ct_anno.html">1. Cell Type Assignment</a>
     </li>
     <li>
-      <a href="articles/Figure_2_pb_dgea.html">2. Pseudo Bulk Differential Expression Analysis</a>
+      <a href="articles/2_pb_dgea.html">02. Pseudo Bulk Differential Expression Analysis</a>
     </li>
     <li>
-      <a href="articles/Figure_3_bulk_de.html">3. Bulk RNAseq Differential Expression Analysis</a>
+      <a href="articles/3_bulk_de.html">3. Bulk RNAseq Differential Expression Analysis</a>
     </li>
     <li>
-      <a href="articles/Figure_4_tx.html">4. Differential Transcripts Usage</a>
+      <a href="articles/4_Dtx_usage.html">4. Differential Transcripts Usage</a>
     </li>
   </ul>
 </li>
@@ -89,13 +89,6 @@
 <div class="section level1">
 <div class="page-header"><h1 id="a-global-transcriptional-atlas-of-the-effect-of-sleep-loss-in-the-mouse-cortex">A Global Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex<a class="anchor" aria-label="anchor" href="#a-global-transcriptional-atlas-of-the-effect-of-sleep-loss-in-the-mouse-cortex"></a>
 </h1></div>
-<p>This repository shares all the code developed for the analysis of the “A Global Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex” paper.</p>
-<p>At the link <a href="https://rissolab.github.io/AtlasCortexSD/" class="external-link">https://rissolab.github.io/AtlasCortexSD/</a>, in the Articles section, it is possible to retrieve all the reports for reproducing the entire analysis.</p>
-<p>In some cases, because some of the steps are time demanding the code is reported, but not live executed. At the same time, the user has the possibility to reproduce the entire code by starting from the data released with this repository, but also running the following docker file <a href="ghcr.io/RissoLab/v:latest">ghcr.io/RissoLab/AtlasCortexSD:latest</a></p>
-</div>
-<div class="section level1">
-<h1 id="authors">Authors<a class="anchor" aria-label="anchor" href="#authors"></a>
-</h1>
 <p>Kaitlyn Ford<sup>1</sup>, Elena Zuin<sup>2</sup>, Dario Righelli<sup>2</sup>, Christine Muheim<sup>1</sup>, Elizabeth Medina<sup>1</sup>, Hannah Schoch<sup>1</sup>, Kristan Singletary<sup>1</sup>, Stephanie Hicks<sup>3</sup>, Davide Risso<sup>2</sup> and Lucia Peixoto<sup>1</sup></p>
 <ol style="list-style-type: decimal">
 <li>Department of Translational Medicine and Physiology, Washington State University, Spokane, WA</li>
@@ -106,20 +99,42 @@
 <div class="section level1">
 <h1 id="abstract">Abstract<a class="anchor" aria-label="anchor" href="#abstract"></a>
 </h1>
+<p>Sleep deprivation (SD) has negative effects on brain function. Sleep problems are prevalent in neurodevelopmental, neurodegenerative and psychiatric disorders. Thus, understanding the molecular consequences of SD is of fundamental importance in neuroscience. In this study we present the first simultaneous bulk and single single-nuclear (sn)RNA sequencing characterization of the effects of SD in the prefrontal cortex (PFC). We show that SD predominantly affects glutamatergic neurons, specifically in layers 4 and 5, and produces isoform switching of thousands of transcripts. At both the global and cell-type specific level, SD has a large repressive effect on transcription, down-regulating thousands of genes and transcripts; underscoring the importance of accounting for the effects of sleep loss in transcriptome studies of brain function. As a resource we provide extensive characterization of cell-types, genes, transcripts and pathways affected by SD; as well as tutorials for data analysis.</p>
+<div class="section level2">
+<h2 id="about-this-tutorial">About this tutorial<a class="anchor" aria-label="anchor" href="#about-this-tutorial"></a>
+</h2>
+<p>This repository shares all the code developed for the analysis of the “A Global Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex” paper.</p>
+<p>At the link <a href="https://rissolab.github.io/AtlasCortexSD/" class="external-link">https://rissolab.github.io/AtlasCortexSD/</a>, in the Articles section, it is possible to retrieve all the reports for reproducing the entire analysis.</p>
+<p>In some cases, because some of the steps are time demanding the code is reported, but not live executed.</p>
 </div>
-<div class="section level1">
-<h1 id="paper">Paper<a class="anchor" aria-label="anchor" href="#paper"></a>
-</h1>
+<div class="section level2">
+<h2 id="docker-container">Docker container<a class="anchor" aria-label="anchor" href="#docker-container"></a>
+</h2>
+<p>To run this tutorial in a <a href="ghcr.io/rissolab/atlascortexsd:latest">Docker container</a>, pull the Docker image via</p>
+<pre><code>docker pull ghcr.io/rissolab/atlascortexsd:latest</code></pre>
+<p>and then run the image via</p>
+<pre><code>docker run -e PASSWORD=bioc -p 8787:8787 ghcr.io/rissolab/atlascortexsd</code></pre>
+<p>Once running, navigate to <a href="http://localhost:8787/" class="external-link uri">http://localhost:8787/</a> in your browser and login with username <code>rstudio</code> and password <code>bioc</code>.</p>
+</div>
+<div class="section level2">
+<h2 id="local-installation">Local installation<a class="anchor" aria-label="anchor" href="#local-installation"></a>
+</h2>
+<p>This tutorial can be installed like an ordinary R package via:</p>
+<pre><code><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://bioconductor.github.io/BiocManager/" class="external-link">"BiocManager"</a></span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://remotes.r-lib.org" class="external-link">"remotes"</a></span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="st">"RissoLab/AtlasCortexSD"</span>,</span>
+<span>                     dependencies <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                     build_vignettes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre>
+</div>
 </div>
 <div class="section level1">
 <h1 id="data-availability">Data Availability<a class="anchor" aria-label="anchor" href="#data-availability"></a>
 </h1>
 <p>Sequencing data have been deposited in NCBI’s Gene Expression Omnibus (GEO) under the accession number GSE211088. The bulk RNA-seq replicates (5 SD, 5 HC) were previously deposited in GEO under accession number GSE113754, and downloaded from GEO for this analysis.</p>
-</div>
-<div class="section level1">
-<h1 id="code-availability">Code Availability<a class="anchor" aria-label="anchor" href="#code-availability"></a>
-</h1>
-<p>The code used in this article can be accessed via Github through the following link: [link]. The Allen Whole Cortex &amp; Hippocampus - 10x genomics (v2021) reference dataset used for single-nuclear analysis, in a SingleCellExperiment object, has been made available at <a href="https://github.com/drighelli/AllenInstituteBrainData" class="external-link">https://github.com/drighelli/AllenInstituteBrainData</a>.</p>
 </div>
 <div class="section level1">
 <h1 id="acknowledgements">Acknowledgements:<a class="anchor" aria-label="anchor" href="#acknowledgements"></a>

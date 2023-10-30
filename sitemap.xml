@@ -10,16 +10,16 @@
     <loc>https://RissoLab.github.io/AtlasCortexSD/LICENSE.html</loc>
   </url>
   <url>
-    <loc>https://RissoLab.github.io/AtlasCortexSD/articles/Figure_1_ct.html</loc>
+    <loc>https://RissoLab.github.io/AtlasCortexSD/articles/1_ct_anno.html</loc>
   </url>
   <url>
-    <loc>https://RissoLab.github.io/AtlasCortexSD/articles/Figure_2_pb_dgea.html</loc>
+    <loc>https://RissoLab.github.io/AtlasCortexSD/articles/2_pb_dgea.html</loc>
   </url>
   <url>
-    <loc>https://RissoLab.github.io/AtlasCortexSD/articles/Figure_3_bulk_de.html</loc>
+    <loc>https://RissoLab.github.io/AtlasCortexSD/articles/3_bulk_de.html</loc>
   </url>
   <url>
-    <loc>https://RissoLab.github.io/AtlasCortexSD/articles/Figure_4_tx.html</loc>
+    <loc>https://RissoLab.github.io/AtlasCortexSD/articles/4_Dtx_usage.html</loc>
   </url>
   <url>
     <loc>https://RissoLab.github.io/AtlasCortexSD/articles/index.html</loc>
@@ -29,6 +29,9 @@
   </url>
   <url>
     <loc>https://RissoLab.github.io/AtlasCortexSD/index.html</loc>
+  </url>
+  <url>
+    <loc>https://RissoLab.github.io/AtlasCortexSD/reference/Tutorial2_DEG_snRNAseq.html</loc>
   </url>
   <url>
     <loc>https://RissoLab.github.io/AtlasCortexSD/reference/index.html</loc>

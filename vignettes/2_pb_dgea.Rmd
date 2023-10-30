@@ -1,5 +1,5 @@
 ---
-title: "2. Pseudo Bulk Differential Expression Analysis"
+title: "02. Pseudo Bulk Differential Expression Analysis"
 date: "`r Sys.Date()`"
 #bibliography: biblio.bib
 link-citations: TRUE
@@ -7,7 +7,7 @@ output:
     rmarkdown::html_vignette:
         code_folding: show
 vignette: >
-  %\VignetteIndexEntry{2. Pseudo Bulk Differential Expression Analysis}
+  %\VignetteIndexEntry{02. Pseudo Bulk Differential Expression Analysis}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -22,8 +22,7 @@ knitr::opts_chunk$set(
 	cache = FALSE,
 	results = "markup",
 	size = "small",
-	tidy = TRUE,
-	tidy.opts = list(width.cutoff = 60)
+	tidy = TRUE
 )
 options(width=65)
 ```

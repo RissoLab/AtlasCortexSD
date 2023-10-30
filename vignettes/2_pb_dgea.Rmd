@@ -23,8 +23,7 @@ knitr::opts_chunk$set(
 	results = "markup",
 	size = "small",
 	tidy = TRUE,
-	tidy.opts = list(width.cutoff = 60),
-	class.source = "foldable"
+	tidy.opts = list(width.cutoff = 60)
 )
 options(width=65)
 ```

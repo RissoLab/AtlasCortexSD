@@ -1,18 +1,5 @@
 # A Global Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex
 
-This repository shares all the code developed for the analysis of the "A Global Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex" paper.
-
-At the link [https://rissolab.github.io/AtlasCortexSD/](https://rissolab.github.io/AtlasCortexSD/), in the Articles section, it is possible to retrieve all the 
-reports for reproducing the entire analysis.
-
-In some cases, because some of the steps are time demanding the code is reported, 
-but not live executed. 
-At the same time, the user has the possibility to reproduce the entire code by 
-starting from the data released with this repository, but also running the 
-following docker file [ghcr.io/RissoLab/AtlasCortexSD:latest](ghcr.io/RissoLab/v:latest)
-
-# Authors
-
 Kaitlyn Ford<sup>1</sup>, Elena Zuin<sup>2</sup>, Dario Righelli<sup>2</sup>, Christine Muheim<sup>1</sup>, Elizabeth Medina<sup>1</sup>, Hannah Schoch<sup>1</sup>, Kristan Singletary<sup>1</sup>, Stephanie Hicks<sup>3</sup>, Davide Risso<sup>2</sup> and Lucia Peixoto<sup>1</sup>
  
 1. Department of Translational Medicine and Physiology, Washington State University, Spokane, WA 
@@ -21,15 +8,56 @@ Kaitlyn Ford<sup>1</sup>, Elena Zuin<sup>2</sup>, Dario Righelli<sup>2</sup>, Ch
 
 # Abstract 
 
-# Paper
+Sleep deprivation (SD) has negative effects on brain function. Sleep problems are prevalent in neurodevelopmental, neurodegenerative and psychiatric disorders. Thus, understanding the molecular consequences of SD is of fundamental importance in neuroscience. In this study we present the first simultaneous bulk and single single-nuclear (sn)RNA sequencing characterization of the effects of SD in the prefrontal cortex (PFC). We show that SD predominantly affects glutamatergic neurons, specifically in layers 4 and 5, and produces isoform switching of thousands of transcripts. At both the global and cell-type specific level, SD has a large repressive effect on transcription, down-regulating thousands of genes and transcripts; underscoring the importance of accounting for the effects of sleep loss in transcriptome studies of brain function. As a resource we provide extensive characterization of cell-types, genes, transcripts and pathways affected by SD; as well as tutorials for data analysis.
+
+## About this tutorial
+
+This repository shares all the code developed for the analysis of the "A Global Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex" paper.
+
+At the link [https://rissolab.github.io/AtlasCortexSD/](https://rissolab.github.io/AtlasCortexSD/), in the Articles section, it is possible to retrieve all the 
+reports for reproducing the entire analysis.
+
+In some cases, because some of the steps are time demanding the code is reported, 
+but not live executed. 
+
+## Docker container
+
+To run this tutorial in a
+[Docker container](ghcr.io/rissolab/atlascortexsd:latest),
+pull the Docker image via
+
+```
+docker pull ghcr.io/rissolab/atlascortexsd:latest
+``` 
+
+and then run the image via
+
+```
+docker run -e PASSWORD=bioc -p 8787:8787 ghcr.io/rissolab/atlascortexsd
+```
+
+Once running, navigate to http://localhost:8787/ in your browser and login with
+username `rstudio` and password `bioc`.
+
+## Local installation
+
+This tutorial can be installed like an ordinary R package via:
+
+```
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+if (!require("remotes", quietly = TRUE))
+    install.packages("remotes")
+
+BiocManager::install("RissoLab/AtlasCortexSD",
+                     dependencies = TRUE,
+                     build_vignettes = TRUE)
+```
 
 # Data Availability
 
 Sequencing data have been deposited in NCBI’s Gene Expression Omnibus (GEO) under the accession number GSE211088. The bulk RNA-seq replicates (5 SD, 5 HC) were previously deposited in GEO under accession number GSE113754, and downloaded from GEO for this analysis. 
-
-# Code Availability 
-
-The code used in this article can be accessed via Github through the following link: [link]. The Allen Whole Cortex & Hippocampus - 10x genomics (v2021) reference dataset used for single-nuclear analysis, in a SingleCellExperiment object, has been made available at [https://github.com/drighelli/AllenInstituteBrainData](https://github.com/drighelli/AllenInstituteBrainData).
 
 # Acknowledgements:
 

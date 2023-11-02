@@ -13,3 +13,9 @@ vignette: >
 ---
 
 To be added at submission time.
+
+```{r}
+x <- 1+1
+print(x)
+```
+

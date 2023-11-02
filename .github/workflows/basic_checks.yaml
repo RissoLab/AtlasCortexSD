@@ -17,7 +17,7 @@ jobs:
 
       - name: Query dependencies and update old packages
         run: |
-          BiocManager::install(ask=FALSE, version="3.18")
+          BiocManager::install(ask=FALSE, version="3.16")
           saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
         shell: Rscript {0}
 
@@ -41,8 +41,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          BiocManager::repositories(version="3.18")
-          remotes::install_deps(dependencies = TRUE, repos = BiocManager::repositories(version="3.18"))
+          BiocManager::repositories(version="3.16")
+          remotes::install_deps(dependencies = TRUE, repos = BiocManager::repositories(version="3.16"))
           remotes::install_cran("rcmdcheck")
         shell: Rscript {0}
 

@@ -1,11 +1,8 @@
 ---
 title: "Cell Type Assignment"
-date: "`r Sys.Date()`"
 #bibliography: biblio.bib
 link-citations: TRUE
-output: 
-    rmarkdown::html_vignette:
-        code_folding: show
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Cell Type Assignment}
   %\VignetteEngine{knitr::rmarkdown}

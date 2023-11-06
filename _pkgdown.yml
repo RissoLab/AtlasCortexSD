@@ -11,19 +11,6 @@ home:
 
 
 navbar:
-  title: ~
-  type: default
-  left:
-    - text: Vignettes
-      menu:
-      - text: Cell Type Annotation
-        href: articles/1_ct_anno.html
-      - text: Pseudo Bulk Differential Analysis
-        href: articles/2_pb_dgea.html
-      - text: Bulk Differential Analysis
-        href: articles/3_bulk_de.html
-      - text: Differential Transcripts Usage
-        href: articles/4_Dtx_usage.html
   right:
    - icon: fa-github
      href: https://github.com/RissoLab/AtlasCortexSD

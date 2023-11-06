@@ -1,5 +1,6 @@
 ---
 title: "Cell Type Assignment"
+date: "`r Sys.Date()`"
 #bibliography: biblio.bib
 link-citations: TRUE
 output: rmarkdown::html_vignette

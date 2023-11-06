@@ -55,7 +55,7 @@ jobs:
 
       - name: Build pkgdown
         run: |
-           PATH=$PATH:$HOME/bin/ Rscript -e 'pkgdown::build_site(".", devel=TRU)'
+           PATH=$PATH:$HOME/bin/ Rscript -e 'pkgdown::build_site(".", devel=TRUE)'
 
       # deploy needs rsync? Seems so.
       - name: Install deploy dependencies

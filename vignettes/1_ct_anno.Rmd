@@ -1,5 +1,5 @@
 ---
-title: "1. Cell Type Assignment"
+title: "Cell Type Assignment"
 date: "`r Sys.Date()`"
 #bibliography: biblio.bib
 link-citations: TRUE
@@ -7,10 +7,12 @@ output:
     rmarkdown::html_vignette:
         code_folding: show
 vignette: >
-  %\VignetteIndexEntry{1. Cell Type Assignment}
+  %\VignetteIndexEntry{Cell Type Assignment}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+
+# Intro
 
 To be added at submission time.
 

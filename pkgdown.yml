@@ -1,4 +1,4 @@
-pandoc: 3.1.1
+pandoc: 2.19.2
 pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
@@ -6,8 +6,8 @@ articles:
   2_pb_dgea: 2_pb_dgea.html
   3_bulk_de: 3_bulk_de.html
   4_Dtx_usage: 4_Dtx_usage.html
-last_built: 2023-11-02T14:27Z
+last_built: 2023-11-07T09:05Z
 urls:
-  reference: https://RissoLab.github.io/AtlasCortexSD/reference
-  article: https://RissoLab.github.io/AtlasCortexSD/articles
+  reference: https://rissolab.github.io/AtlasCortexSD/reference
+  article: https://rissolab.github.io/AtlasCortexSD/articles
 

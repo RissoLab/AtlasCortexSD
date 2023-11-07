@@ -42,6 +42,7 @@ jobs:
       - name: Install dependencies
         run: |
           BiocManager::repositories(version="3.16")
+          install.packages("ragg", type="source")
           remotes::install_deps(dependencies = TRUE, repos = BiocManager::repositories(version="3.16"))
           remotes::install_cran("rcmdcheck")
         shell: Rscript {0}
@@ -55,7 +56,7 @@ jobs:
 
       - name: Build pkgdown
         run: |
-           PATH=$PATH:$HOME/bin/ Rscript -e 'pkgdown::build_site(".", devel=TRUE)'
+           PATH=$PATH:$HOME/bin/ Rscript -e 'pkgdown::build_site(".")'
 
       # deploy needs rsync? Seems so.
       - name: Install deploy dependencies

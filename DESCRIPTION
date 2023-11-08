@@ -29,6 +29,7 @@ Depends:
     Biobase
 Suggests: 
     knitr,
+    reticulate,
     rmarkdown,
     pkgdown,
     SingleCellExperiment,

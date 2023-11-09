@@ -42,9 +42,7 @@ jobs:
       - name: Install dependencies
         run: |
           BiocManager::repositories(version="3.16")
-          install.packages("ragg", type="source")
           remotes::install_deps(dependencies = TRUE, repos = BiocManager::repositories(version="3.16"))
-          remotes::install_cran("rcmdcheck")
         shell: Rscript {0}
 
       - name: Check

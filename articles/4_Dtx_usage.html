@@ -95,12 +95,630 @@
 
     
     
-<p>To be added at submission time.</p>
+<div class="section level2">
+<h2 id="differential-transcript-usage-using-fishpond-with-ruvs">Differential Transcript Usage using Fishpond with RUVs<a class="anchor" aria-label="anchor" href="#differential-transcript-usage-using-fishpond-with-ruvs"></a>
+</h2>
+<div class="section level3">
+<h3 id="description">Description<a class="anchor" aria-label="anchor" href="#description"></a>
+</h3>
+<p>Sleep deprivation (SD) has negative effects on brain function. Sleep
+problems are prevalent in neurodevelopmental, neurodegenerative and
+psychiatric disorders. Thus, understanding the molecular consequences of
+SD is of fundamental importance in neuroscience. In this study, we
+present the first simultaneous bulk and single-nuclear (sn)RNA
+sequencing characterization of the effects of SD in the mouse frontal
+cortex. We show that SD predominantly affects glutamatergic neurons,
+specifically in layers 4 and 5, and produces isoform switching of
+thousands of transcripts. At both the global and cell-type specific
+level, SD has a large repressive effect on transcription,
+down-regulating thousands of genes and transcripts; underscoring the
+importance of accounting for the effects of sleep loss in transcriptome
+studies of brain function. As a resource we provide extensive
+characterizations of cell types, genes, transcripts and pathways
+affected by SD; as well as tutorials for data analysis.</p>
+<p>This code was adapted from the tutorial here: <a href="https://bioconductor.org/packages/release/bioc/vignettes/fishpond/inst/doc/swish.html#Quick_start" class="external-link uri">https://bioconductor.org/packages/release/bioc/vignettes/fishpond/inst/doc/swish.html#Quick_start</a></p>
+</div>
+<div class="section level3">
+<h3 id="data-availability">Data Availability<a class="anchor" aria-label="anchor" href="#data-availability"></a>
+</h3>
+<p>“Raw” sequencing data for this analysis is stored in GEO under
+accession number <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE211088" class="external-link">GSE211088</a>.
+Additionally, the bulk files were previously published <span class="citation">[@ingiosi2019]</span> and can be accessed in GEO under
+accession number <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE113754" class="external-link">GSE113754</a>.</p>
+<p>The code used in this analysis has been deposited into Github, and
+can be accessed via the following link: <strong>link to github folder
+where this code is</strong></p>
+<p>Prior to this analysis, files were quantified using <em>Salmon</em>
+<span class="citation">[@patro2017]</span> and imported into
+<em>tximeta</em> <span class="citation">[@love2020]</span> to generate a
+<em>SummarizedExperiment</em> object.</p>
+</div>
+<div class="section level3">
+<h3 id="data-import">Data Import<a class="anchor" aria-label="anchor" href="#data-import"></a>
+</h3>
+<p>Establish the working directory using the code below. The working
+directory can be thought of as the default location where files can be
+accessed from or saved to.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/getwd.html" class="external-link">setwd</a></span><span class="op">(</span><span class="st">"~/Dropbox/Sleep_RNAseq_Splicing/BulkRNAseq_SD/Final_Tximeta"</span><span class="op">)</span></span>
+<span><span class="va">dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/getwd.html" class="external-link">setwd</a></span><span class="op">(</span><span class="st">"~/Dropbox/Sleep_RNAseq_Splicing/BulkRNAseq_SD/Final_Tximeta"</span><span class="op">)</span></span></code></pre></div>
+<p>Import the colData, which contains the sample names and condition
+(the condition is necessary for Fishpond). In short, the colData is a
+file that contains descriptions of the samples, and is created during
+tximeta <span class="citation">[@love2020]</span>. You can see what the
+columns and first few rows of the file look like using the
+<em>head()</em> function:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span>file <span class="op">=</span> <span class="st">"coldata.rda"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">coldata</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##                               names condition</span></span>
+<span><span class="co">## S3HC5_PFC_1_quant S3HC5_PFC_1_quant     S3HC5</span></span>
+<span><span class="co">## S3HC5_PFC_2_quant S3HC5_PFC_2_quant     S3HC5</span></span>
+<span><span class="co">## S3HC5_PFC_3_quant S3HC5_PFC_3_quant     S3HC5</span></span>
+<span><span class="co">## S3HC5_PFC_4_quant S3HC5_PFC_4_quant     S3HC5</span></span>
+<span><span class="co">## S3HC5_PFC_5_quant S3HC5_PFC_5_quant     S3HC5</span></span>
+<span><span class="co">## S3HC7_PFC_1_quant S3HC7_PFC_1_quant     S3HC7</span></span>
+<span><span class="co">##                                                                                                                                        files</span></span>
+<span><span class="co">## S3HC5_PFC_1_quant /Users/kaitlynford/Dropbox/Sleep_RNAseq_Splicing/BulkRNAseq_SD/Final_Tximeta/data/Salmon_Quants/S3HC5_PFC_1_quant/quant.sf</span></span>
+<span><span class="co">## S3HC5_PFC_2_quant /Users/kaitlynford/Dropbox/Sleep_RNAseq_Splicing/BulkRNAseq_SD/Final_Tximeta/data/Salmon_Quants/S3HC5_PFC_2_quant/quant.sf</span></span>
+<span><span class="co">## S3HC5_PFC_3_quant /Users/kaitlynford/Dropbox/Sleep_RNAseq_Splicing/BulkRNAseq_SD/Final_Tximeta/data/Salmon_Quants/S3HC5_PFC_3_quant/quant.sf</span></span>
+<span><span class="co">## S3HC5_PFC_4_quant /Users/kaitlynford/Dropbox/Sleep_RNAseq_Splicing/BulkRNAseq_SD/Final_Tximeta/data/Salmon_Quants/S3HC5_PFC_4_quant/quant.sf</span></span>
+<span><span class="co">## S3HC5_PFC_5_quant /Users/kaitlynford/Dropbox/Sleep_RNAseq_Splicing/BulkRNAseq_SD/Final_Tximeta/data/Salmon_Quants/S3HC5_PFC_5_quant/quant.sf</span></span>
+<span><span class="co">## S3HC7_PFC_1_quant /Users/kaitlynford/Dropbox/Sleep_RNAseq_Splicing/BulkRNAseq_SD/Final_Tximeta/data/Salmon_Quants/S3HC7_PFC_1_quant/quant.sf</span></span></code></pre>
+<p>Add a path to locate the files:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">coldata</span><span class="op">$</span><span class="va">files</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">dir</span>, <span class="st">"data/Salmon_Quants"</span>, <span class="va">coldata</span><span class="op">$</span><span class="va">names</span>,</span>
+<span>    <span class="st">"quant.sf"</span><span class="op">)</span></span></code></pre></div>
+<p>Before continuing with the analysis, make sure that all files in your
+colData exist in this location:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">coldata</span><span class="op">$</span><span class="va">files</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] TRUE</span></span></code></pre>
+<p>Load <em>SummarizedExperiment</em> and <em>tximeta</em> packages:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bioconductor.org/packages/SummarizedExperiment" class="external-link">SummarizedExperiment</a></span><span class="op">)</span><span class="op">)</span>  <span class="co"># Version 1.28.0</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">tximeta</span><span class="op">)</span><span class="op">)</span>  <span class="co"># Version 1.16.1</span></span></code></pre></div>
+<p>Load the quantification data with <em>tximeta</em> (Here we load with
+an rda file):</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span>file <span class="op">=</span> <span class="st">"se.rda"</span><span class="op">)</span></span></code></pre></div>
+<p>Ensure assays are loaded by viewing <em>assayNames()</em>. Assays are
+experimental results, and are necessary for <em>fishpond</em>. Call
+<em>assay()</em> to retrieve experimental data.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assayNames</a></span><span class="op">(</span><span class="va">se</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##  [1] "counts"    "abundance" "length"    "infRep1"   "infRep2"  </span></span>
+<span><span class="co">##  [6] "infRep3"   "infRep4"   "infRep5"   "infRep6"   "infRep7"  </span></span>
+<span><span class="co">## [11] "infRep8"   "infRep9"   "infRep10"  "infRep11"  "infRep12" </span></span>
+<span><span class="co">## [16] "infRep13"  "infRep14"  "infRep15"  "infRep16"  "infRep17" </span></span>
+<span><span class="co">## [21] "infRep18"  "infRep19"  "infRep20"  "infRep21"  "infRep22" </span></span>
+<span><span class="co">## [26] "infRep23"  "infRep24"  "infRep25"  "infRep26"  "infRep27" </span></span>
+<span><span class="co">## [31] "infRep28"  "infRep29"  "infRep30"</span></span></code></pre>
+<p>View rownames (transcript IDs) using the <em>head()</em>
+function:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">se</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "ENSMUST00000193812.1" "ENSMUST00000082908.1"</span></span>
+<span><span class="co">## [3] "ENSMUST00000162897.1" "ENSMUST00000159265.1"</span></span>
+<span><span class="co">## [5] "ENSMUST00000070533.4" "ENSMUST00000192857.1"</span></span></code></pre>
+</div>
+</div>
+<div class="section level2">
+<h2 id="differential-transcript-usage-analysis-starts-here">Differential Transcript Usage Analysis Starts Here<a class="anchor" aria-label="anchor" href="#differential-transcript-usage-analysis-starts-here"></a>
+</h2>
+<p>‘se’ will be referred to as ‘y’ for the remainder of the
+analysis.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">se</span></span></code></pre></div>
+<p>I will do a two group comparison between wild-type animals. Those
+that were left undisturbed in their home cage (HC) for 5 hours and those
+who were sleep sleep deprived (SD) via gentle handling for 5 hours.</p>
+<p>The following analysis will compare the second group to the first
+group listed in <em>levels</em>, in this case, SD compared to HC
+controls.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">y</span><span class="op">[</span>, <span class="va">y</span><span class="op">$</span><span class="va">condition</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"WTHC5"</span>, <span class="st">"WTSD5"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">y</span><span class="op">$</span><span class="va">condition</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">y</span><span class="op">$</span><span class="va">condition</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"WTHC5"</span>, <span class="st">"WTSD5"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Load the <em>fishpond</em> package to proceed with differential
+transcript usage analysis:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">fishpond</span><span class="op">)</span><span class="op">)</span>  <span class="co"># Version 2.4.1</span></span></code></pre></div>
+<p>Scale inferential replicates to the mean sequencing depth. It is
+important to note that only the inferential replicates are scaled during
+this process, not the counts, which will be relevant in later steps.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu">scaleInfReps</span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Progress:  1 on 30  Progress:  2 on 30  Progress:  3 on 30  Progress:  4 on 30  Progress:  5 on 30  Progress:  6 on 30  Progress:  7 on 30  Progress:  8 on 30  Progress:  9 on 30  Progress: 10 on 30  Progress: 11 on 30  Progress: 12 on 30  Progress: 13 on 30  Progress: 14 on 30  Progress: 15 on 30  Progress: 16 on 30  Progress: 17 on 30  Progress: 18 on 30  Progress: 19 on 30  Progress: 20 on 30  Progress: 21 on 30  Progress: 22 on 30  Progress: 23 on 30  Progress: 24 on 30  Progress: 25 on 30  Progress: 26 on 30  Progress: 27 on 30  Progress: 28 on 30  Progress: 29 on 30  Progress: 30 on 30</span></span></code></pre>
+<p>Before filtering, we have 140,992 transcripts:</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 140992     10</span></span></code></pre>
+<p>Filter here, keeping a minimum count of 10 transcripts across a
+minimum of 3 replicates. In this step, we are removing most of the rows
+with zero to very low counts before proceeding with the analysis.</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu">labelKeep</span><span class="op">(</span><span class="va">y</span>, minCount <span class="op">=</span> <span class="fl">10</span>, minN <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<p>After filtering, we have 54,030 transcripts:</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">y</span><span class="op">[</span><span class="fu">mcols</span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">$</span><span class="va">keep</span>, <span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 54030    10</span></span></code></pre>
+<p>For DTU analysis, we apply a secondary filter. This is to ensure that
+we are only discovering transcripts that have reproducible changes in
+usage. Following this secondary filter, we are left with 50,227
+transcripts, which can be verified with <em>dim()</em>.</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">y</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">$</span><span class="va">log10mean</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">]</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 50227    10</span></span></code></pre>
+<div class="section level3">
+<h3 id="determining-the-sources-of-unwanted-variation-with-ruvs">Determining the Sources of Unwanted Variation with RUVs<a class="anchor" aria-label="anchor" href="#determining-the-sources-of-unwanted-variation-with-ruvs"></a>
+</h3>
+<p>Assemble a matrix that contains the groups. If you have uneven
+groups, “fill” the extra spaces in the matrix with “-1” values.</p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">6</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Check to make sure ‘groups’ appears as expected.</p>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">groups</span></span></code></pre></div>
+<pre><code><span><span class="co">##      [,1] [,2] [,3] [,4] [,5]</span></span>
+<span><span class="co">## [1,]    1    2    3    4    5</span></span>
+<span><span class="co">## [2,]    6    7    8    9   10</span></span></code></pre>
+<p>Assign the names of the variables to match the column names of your
+data. This is important for <em>RColorBrewer</em>, which is used to
+designate colors for figures later on in this analysis:</p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"WTHC5"</span>, <span class="st">"WTSD5"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">x</span></span></code></pre></div>
+<pre><code><span><span class="co">##  [1] WTHC5 WTHC5 WTHC5 WTHC5 WTHC5 WTSD5 WTSD5 WTSD5 WTSD5 WTSD5</span></span>
+<span><span class="co">## Levels: WTHC5 WTSD5</span></span></code></pre>
+<p>Shorten sample names for simplicity while making the matrix:</p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"HC5_1"</span>, <span class="st">"HC5_2"</span>, <span class="st">"HC5_3"</span>, <span class="st">"HC5_4"</span>, <span class="st">"HC5_5"</span>, <span class="st">"SD5_1"</span>,</span>
+<span>    <span class="st">"SD5_2"</span>, <span class="st">"SD5_3"</span>, <span class="st">"SD5_4"</span>, <span class="st">"SD5_5"</span><span class="op">)</span></span></code></pre></div>
+<p>See what type of data class ‘x’ is using the code below:</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/data.class.html" class="external-link">data.class</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "factor"</span></span></code></pre>
+<p>Turn ‘x’ into a matrix:</p>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##       [,1]   </span></span>
+<span><span class="co">## HC5_1 "WTHC5"</span></span>
+<span><span class="co">## HC5_2 "WTHC5"</span></span>
+<span><span class="co">## HC5_3 "WTHC5"</span></span>
+<span><span class="co">## HC5_4 "WTHC5"</span></span>
+<span><span class="co">## HC5_5 "WTHC5"</span></span>
+<span><span class="co">## SD5_1 "WTSD5"</span></span>
+<span><span class="co">## SD5_2 "WTSD5"</span></span>
+<span><span class="co">## SD5_3 "WTSD5"</span></span>
+<span><span class="co">## SD5_4 "WTSD5"</span></span>
+<span><span class="co">## SD5_5 "WTSD5"</span></span></code></pre>
+<p>Load <em>RColorBrewer</em> here:</p>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">RColorBrewer</span><span class="op">)</span><span class="op">)</span>  <span class="co"># Version 1.1-3</span></span></code></pre></div>
+<p>This palette will be used for PCA and RLE plots. HC controls will be
+light grey and SD samples will be dark grey. To view other palette
+options, use <em>brewer.pal.info</em>:</p>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/RColorBrewer/man/ColorBrewer.html" class="external-link">brewer.pal</a></span><span class="op">(</span><span class="fl">9</span>, <span class="st">"Greys"</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6</span>, <span class="fl">7</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">colLib</span> <span class="op">&lt;-</span> <span class="va">colors</span><span class="op">[</span><span class="va">x</span><span class="op">]</span></span>
+<span><span class="va">HC_color</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/RColorBrewer/man/ColorBrewer.html" class="external-link">brewer.pal</a></span><span class="op">(</span><span class="fl">9</span>, <span class="st">"Greys"</span><span class="op">)</span><span class="op">[</span><span class="fl">6</span><span class="op">]</span></span>
+<span><span class="va">SD_color</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/RColorBrewer/man/ColorBrewer.html" class="external-link">brewer.pal</a></span><span class="op">(</span><span class="fl">9</span>, <span class="st">"Greys"</span><span class="op">)</span><span class="op">[</span><span class="fl">7</span><span class="op">]</span></span></code></pre></div>
+<p>Remove the version #s for each transcript. It is helpful to note that
+the version #s correspond to the release version, they are not different
+transcripts of the same gene:</p>
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>, <span class="va">sub</span>, pattern <span class="op">=</span> <span class="st">"\\.\\d+$"</span>,</span>
+<span>    replacement <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.class.html" class="external-link">data.class</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "character"</span></span></code></pre>
+<p>Extract the counts from the <em>SummarizedExperiment</em> object for
+normalization. Note that we will estimate the factors of unwanted
+variation on the counts, and then we will apply that across the
+inferential replicates further downstream:</p>
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assays</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">[[</span><span class="st">"counts"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.class.html" class="external-link">data.class</a></span><span class="op">(</span><span class="va">counts</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "matrix"</span></span></code></pre>
+<p>Upper Quartile (UQ) normalization is implemented here with the
+<em>EDASeq</em> package, and accounts for variation in sequencing
+depth:</p>
+<p>As the counts were not scaled (only the inferential replicates), we
+need to account for sequencing depth prior to proceeding with
+<em>RUVs</em> normalization, which allows us to obtain a the estimated
+factors of unwanted variation (<em>s$W</em>):</p>
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/drisso/EDASeq" class="external-link">"EDASeq"</a></span><span class="op">)</span><span class="op">)</span>  <span class="co"># Version 2.32.0</span></span>
+<span><span class="va">uq</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/EDASeq/man/betweenLaneNormalization-methods.html" class="external-link">betweenLaneNormalization</a></span><span class="op">(</span><span class="va">counts</span>, which <span class="op">=</span> <span class="st">"upper"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">uq</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 50227    10</span></span></code></pre>
+<p>Shorten the sample names (<em>colnames</em>) for figures:</p>
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">uq</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##  [1] "WTHC5_PFC_1_quant" "WTHC5_PFC_2_quant" "WTHC5_PFC_3_quant"</span></span>
+<span><span class="co">##  [4] "WTHC5_PFC_4_quant" "WTHC5_PFC_5_quant" "WTSD5_PFC_1_quant"</span></span>
+<span><span class="co">##  [7] "WTSD5_PFC_2_quant" "WTSD5_PFC_3_quant" "WTSD5_PFC_4_quant"</span></span>
+<span><span class="co">## [10] "WTSD5_PFC_5_quant"</span></span></code></pre>
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">uq</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"HC5_1"</span>, <span class="st">"HC5_2"</span>, <span class="st">"HC5_3"</span>, <span class="st">"HC5_4"</span>, <span class="st">"HC5_5"</span>,</span>
+<span>    <span class="st">"SD5_1"</span>, <span class="st">"SD5_2"</span>, <span class="st">"SD5_3"</span>, <span class="st">"SD5_4"</span>, <span class="st">"SD5_5"</span><span class="op">)</span></span></code></pre></div>
+<p>Here we plot two quality control plots (RLE and PCA) following UQ
+normalization. Note that triangles are sleep deprived animals and
+circles are home cage control animals that were collected at the same
+circadian time:</p>
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/EDASeq/man/plotRLE-methods.html" class="external-link">plotRLE</a></span><span class="op">(</span><span class="va">uq</span>, col <span class="op">=</span> <span class="va">colLib</span>, outline <span class="op">=</span> <span class="cn">FALSE</span>, las <span class="op">=</span> <span class="fl">3</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,</span>
+<span>    <span class="fl">1</span><span class="op">)</span>, ylab <span class="op">=</span> <span class="st">"Relative Log Expression"</span>, cex.axis <span class="op">=</span> <span class="fl">1.3</span>, cex.lab <span class="op">=</span> <span class="fl">1.3</span><span class="op">)</span></span></code></pre></div>
+<p><img src="figure/unnamed-chunk-29-1.png" alt="plot of chunk unnamed-chunk-29" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/plotPCA.html" class="external-link">plotPCA</a></span><span class="op">(</span><span class="va">uq</span>, labels <span class="op">=</span> <span class="cn">FALSE</span>, col <span class="op">=</span> <span class="va">colLib</span>, cex <span class="op">=</span> <span class="fl">1.5</span>, cex.axis <span class="op">=</span> <span class="fl">1.3</span>,</span>
+<span>    cex.lab <span class="op">=</span> <span class="fl">1.3</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.75</span>, <span class="fl">0.75</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.75</span>, <span class="fl">0.75</span><span class="op">)</span>,</span>
+<span>    pch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">19</span>, <span class="fl">17</span><span class="op">)</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="figure/unnamed-chunk-29-2.png" alt="plot of chunk unnamed-chunk-29" style="display: block; margin: auto;"></p>
+<p>Load <em>RUVSeq</em> package:</p>
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/drisso/RUVSeq" class="external-link">RUVSeq</a></span><span class="op">)</span><span class="op">)</span>  <span class="co"># Version 1.32.0</span></span></code></pre></div>
+<p><em>RUVseq</em>: Here we will estimate a matrix that contains
+estimated factors of unwanted factors after UQ normalization.</p>
+<p><em>RUVs</em> uses technical replicates or negative controls samples.
+In this instance, as we do not have negative controls for transcripts,
+we will use the rownames of the matrix y after filtering (all expressed
+transcripts). For additional information regarding <em>RUVs</em>, see
+<span class="citation">[@risso2014]</span>.</p>
+<p>We have set the numbers of factors of unwanted variation (<em>k</em>)
+= 4, which optimizes the positive control recovery (at the gene level)
+without removing signal. When one is beginning analysis, it is
+recommended to test a variety of <em>k</em>s, and compare the results to
+one another.</p>
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/RUVSeq/man/RUVs.html" class="external-link">RUVs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">uq</span>, cIdx <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>, scIdx <span class="op">=</span> <span class="va">groups</span>, k <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
+<p>Plot the RLE and PCA plots (quality control figures) again following
+<em>RUVs</em> normalization. After proper normalization, the largest
+source of variation in the dataset is the treatment as visualized on the
+PCA plot (separated along PC1).</p>
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/EDASeq/man/plotRLE-methods.html" class="external-link">plotRLE</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">normalizedCounts</span>, col <span class="op">=</span> <span class="va">colLib</span>, outline <span class="op">=</span> <span class="cn">FALSE</span>, las <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>    ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, ylab <span class="op">=</span> <span class="st">"Relative Log Expression"</span>, cex.axis <span class="op">=</span> <span class="fl">1.2</span>,</span>
+<span>    cex.lab <span class="op">=</span> <span class="fl">1.2</span><span class="op">)</span></span></code></pre></div>
+<p><img src="figure/unnamed-chunk-32-1.png" alt="plot of chunk unnamed-chunk-32" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/plotPCA.html" class="external-link">plotPCA</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">normalizedCounts</span>, labels <span class="op">=</span> <span class="cn">FALSE</span>, col <span class="op">=</span> <span class="va">colLib</span>, cex <span class="op">=</span> <span class="fl">1.3</span>,</span>
+<span>    cex.axis <span class="op">=</span> <span class="fl">1.2</span>, cex.lab <span class="op">=</span> <span class="fl">1.2</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.75</span>, <span class="fl">0.75</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.75</span>,</span>
+<span>        <span class="fl">0.75</span><span class="op">)</span>, pch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">19</span>, <span class="fl">17</span><span class="op">)</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="figure/unnamed-chunk-32-2.png" alt="plot of chunk unnamed-chunk-32" style="display: block; margin: auto;"></p>
+<p>Downstream we will use <em>s$W</em> (from <em>RUVs</em>) as the
+estimation of batch factors.</p>
+<p>‘infRepIdx’ lists the inferential replicates (30):</p>
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">infRepIdx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"infRep"</span>, <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assayNames</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>, value <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Save the number of inferential replicates as ‘nreps’:</p>
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">nreps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">infRepIdx</span><span class="op">)</span></span>
+<span><span class="va">nreps</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 30</span></span></code></pre>
+<p>Account for continuous variables with <em>removeBatchEffect</em> from
+<em>limma</em>. Our samples do not fall into discrete clusters so we
+will use the following approach recommended by the <em>fishpond</em>
+developers.</p>
+<p>In short, this is done by directly scaling the estimated counts
+across inferential replicates.</p>
+<p>First inferential replicates are logged as <em>limma</em> requires
+log-expression values for a series of samples. This is done with the
+<em>assay</em> function from the <em>SummarizedExperiment</em>
+package.</p>
+<p>First, we load the <em>limma</em> package:</p>
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioinf.wehi.edu.au/limma" class="external-link">limma</a></span><span class="op">)</span><span class="op">)</span>  <span class="co"># Version 3.54.2</span></span></code></pre></div>
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">model_matrix</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span><span class="op">~</span><span class="va">condition</span>, <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">pc</span> <span class="op">&lt;-</span> <span class="fl">0.1</span>  <span class="co"># This is added to avoid negative InfReps</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">k</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">nreps</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">logInfRep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assay</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">infRepIdx</span><span class="op">[</span><span class="va">k</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="va">pc</span><span class="op">)</span></span>
+<span>    <span class="va">logInfRep</span> <span class="op">&lt;-</span> <span class="fu">limma</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/limma/man/removeBatchEffect.html" class="external-link">removeBatchEffect</a></span><span class="op">(</span><span class="va">logInfRep</span>, covariates <span class="op">=</span> <span class="va">s</span><span class="op">$</span><span class="va">W</span>,</span>
+<span>        design <span class="op">=</span> <span class="va">model_matrix</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assay</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">infRepIdx</span><span class="op">[</span><span class="va">k</span><span class="op">]</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">logInfRep</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="run-swish-and-plot-additional-figures">Run Swish and Plot Additional Figures<a class="anchor" aria-label="anchor" href="#run-swish-and-plot-additional-figures"></a>
+</h3>
+<p>Unique to differential transcript usage analysis,
+<em>isoformProportions</em> takes the scaled and filtered counts and
+returns the proportions relative to that gene. Note that any transcripts
+from single transcript (isoform) genes are removed during this step.</p>
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">iso</span> <span class="op">&lt;-</span> <span class="fu">isoformProportions</span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Progress:  1 on 30  Progress:  2 on 30  Progress:  3 on 30  Progress:  4 on 30  Progress:  5 on 30  Progress:  6 on 30  Progress:  7 on 30  Progress:  8 on 30  Progress:  9 on 30  Progress: 10 on 30  Progress: 11 on 30  Progress: 12 on 30  Progress: 13 on 30  Progress: 14 on 30  Progress: 15 on 30  Progress: 16 on 30  Progress: 17 on 30  Progress: 18 on 30  Progress: 19 on 30  Progress: 20 on 30  Progress: 21 on 30  Progress: 22 on 30  Progress: 23 on 30  Progress: 24 on 30  Progress: 25 on 30  Progress: 26 on 30  Progress: 27 on 30  Progress: 28 on 30  Progress: 29 on 30  Progress: 30 on 30</span></span></code></pre>
+<p>The Swish method is described in <span class="citation">[@zhu2019]</span>. Note that the <em>set.seed</em>
+function allows for the reproducibility of exact results in the
+future.</p>
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu">swish</span><span class="op">(</span><span class="va">iso</span>, x <span class="op">=</span> <span class="st">"condition"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Progress:   1 on 100  Progress:   2 on 100  Progress:   3 on 100  Progress:   4 on 100  Progress:   5 on 100  Progress:   6 on 100  Progress:   7 on 100  Progress:   8 on 100  Progress:   9 on 100  Progress:  10 on 100  Progress:  11 on 100  Progress:  12 on 100  Progress:  13 on 100  Progress:  14 on 100  Progress:  15 on 100  Progress:  16 on 100  Progress:  17 on 100  Progress:  18 on 100  Progress:  19 on 100  Progress:  20 on 100  Progress:  21 on 100  Progress:  22 on 100  Progress:  23 on 100  Progress:  24 on 100  Progress:  25 on 100  Progress:  26 on 100  Progress:  27 on 100  Progress:  28 on 100  Progress:  29 on 100  Progress:  30 on 100  Progress:  31 on 100  Progress:  32 on 100  Progress:  33 on 100  Progress:  34 on 100  Progress:  35 on 100  Progress:  36 on 100  Progress:  37 on 100  Progress:  38 on 100  Progress:  39 on 100  Progress:  40 on 100  Progress:  41 on 100  Progress:  42 on 100  Progress:  43 on 100  Progress:  44 on 100  Progress:  45 on 100  Progress:  46 on 100  Progress:  47 on 100  Progress:  48 on 100  Progress:  49 on 100  Progress:  50 on 100  Progress:  51 on 100  Progress:  52 on 100  Progress:  53 on 100  Progress:  54 on 100  Progress:  55 on 100  Progress:  56 on 100  Progress:  57 on 100  Progress:  58 on 100  Progress:  59 on 100  Progress:  60 on 100  Progress:  61 on 100  Progress:  62 on 100  Progress:  63 on 100  Progress:  64 on 100  Progress:  65 on 100  Progress:  66 on 100  Progress:  67 on 100  Progress:  68 on 100  Progress:  69 on 100  Progress:  70 on 100  Progress:  71 on 100  Progress:  72 on 100  Progress:  73 on 100  Progress:  74 on 100  Progress:  75 on 100  Progress:  76 on 100  Progress:  77 on 100  Progress:  78 on 100  Progress:  79 on 100  Progress:  80 on 100  Progress:  81 on 100  Progress:  82 on 100  Progress:  83 on 100  Progress:  84 on 100  Progress:  85 on 100  Progress:  86 on 100  Progress:  87 on 100  Progress:  88 on 100  Progress:  89 on 100  Progress:  90 on 100  Progress:  91 on 100  Progress:  92 on 100  Progress:  93 on 100  Progress:  94 on 100  Progress:  95 on 100  Progress:  96 on 100  Progress:  97 on 100  Progress:  98 on 100  Progress:  99 on 100  Progress: 100 on 100</span></span></code></pre>
+<p>View a table of significantly differently used transcripts. These
+transcripts have a qvalue &lt; 0.05:</p>
+<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu">mcols</span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">$</span><span class="va">qvalue</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## </span></span>
+<span><span class="co">## FALSE  TRUE </span></span>
+<span><span class="co">## 41383  2314</span></span></code></pre>
+<p>You can also view a table that shows which transcripts have an
+increase in proportion (1) in response to sleep deprivation and which
+have a decrease in proportion (-1):</p>
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="fu">mcols</span><span class="op">(</span><span class="va">y</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span>sig <span class="op">=</span> <span class="va">qvalue</span> <span class="op">&lt;</span> <span class="fl">0.05</span>, sign.lfc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sign.html" class="external-link">sign</a></span><span class="op">(</span><span class="va">log2FC</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##        sign.lfc</span></span>
+<span><span class="co">## sig        -1     1</span></span>
+<span><span class="co">##   FALSE 22829 18554</span></span>
+<span><span class="co">##   TRUE    899  1415</span></span></code></pre>
+<p>Here, we will export a text file (containing the median of each
+transcript across inferential replicates) for additional plotting.
+First, select all features, use abind to combine multi-dimensional
+arrays, and then take the median:</p>
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">infReps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assays</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"infRep"</span>, <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assayNames</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">infArray</span> <span class="op">&lt;-</span> <span class="fu">abind</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/abind/man/abind.html" class="external-link">abind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">infReps</span><span class="op">)</span>, along <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">infArray</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 43697    10    30</span></span></code></pre>
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">infMed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">infArray</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, <span class="va">median</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.class.html" class="external-link">data.class</a></span><span class="op">(</span><span class="va">infMed</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "matrix"</span></span></code></pre>
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.table</a></span><span class="op">(</span><span class="va">infMed</span>, file <span class="op">=</span> <span class="st">"DTU_InfMed.txt"</span>, sep <span class="op">=</span> <span class="st">"\t"</span><span class="op">)</span></span></code></pre></div>
+<p>Plot a histogram to show the distribution of pvalues:</p>
+<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="fu">mcols</span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">$</span><span class="va">pvalue</span>, col <span class="op">=</span> <span class="st">"grey"</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10000</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">""</span>,</span>
+<span>    xlab <span class="op">=</span> <span class="st">"Pvalue"</span>, cex.axis <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span></span></code></pre></div>
+<p><img src="figure/unnamed-chunk-42-1.png" alt="plot of chunk unnamed-chunk-42" style="display: block; margin: auto;"></p>
+<p>Add symbols (Gene IDs) to the <em>SummarizedExperiment</em> object.
+We will label genes on the MA plot in later steps. First load the
+<em>org.Mm.eg.db</em> package:</p>
+<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">org.Mm.eg.db</span><span class="op">)</span><span class="op">)</span>  <span class="co">#Version 3.16.0</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu">addIds</span><span class="op">(</span><span class="va">y</span>, <span class="st">"SYMBOL"</span>, gene <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## DataFrame with 43697 rows and 12 columns</span></span>
+<span><span class="co">##                        tx_id               gene_id</span></span>
+<span><span class="co">##                    &lt;integer&gt;       &lt;CharacterList&gt;</span></span>
+<span><span class="co">## ENSMUST00000000028    118541 ENSMUSG00000000028.15</span></span>
+<span><span class="co">## ENSMUST00000096990    118542 ENSMUSG00000000028.15</span></span>
+<span><span class="co">## ENSMUST00000103015     89100  ENSMUSG00000000056.7</span></span>
+<span><span class="co">## ENSMUST00000151088     89102  ENSMUSG00000000056.7</span></span>
+<span><span class="co">## ENSMUST00000000058     43436  ENSMUSG00000000058.6</span></span>
+<span><span class="co">## ...                      ...                   ...</span></span>
+<span><span class="co">## ENSMUST00000010249    133751  ENSMUSG00000118346.1</span></span>
+<span><span class="co">## ENSMUST00000236942    134988  ENSMUSG00000118369.1</span></span>
+<span><span class="co">## ENSMUST00000237210    134989  ENSMUSG00000118369.1</span></span>
+<span><span class="co">## ENSMUST00000239076     21191  ENSMUSG00000118504.1</span></span>
+<span><span class="co">## ENSMUST00000239082     21195  ENSMUSG00000118504.1</span></span>
+<span><span class="co">##                                  tx_name log10mean      keep</span></span>
+<span><span class="co">##                              &lt;character&gt; &lt;numeric&gt; &lt;logical&gt;</span></span>
+<span><span class="co">## ENSMUST00000000028 ENSMUST00000000028.13   1.63108      TRUE</span></span>
+<span><span class="co">## ENSMUST00000096990  ENSMUST00000096990.9   1.24429      TRUE</span></span>
+<span><span class="co">## ENSMUST00000103015  ENSMUST00000103015.3   3.30968      TRUE</span></span>
+<span><span class="co">## ENSMUST00000151088  ENSMUST00000151088.1   1.00226      TRUE</span></span>
+<span><span class="co">## ENSMUST00000000058  ENSMUST00000000058.6   3.11104      TRUE</span></span>
+<span><span class="co">## ...                                  ...       ...       ...</span></span>
+<span><span class="co">## ENSMUST00000010249  ENSMUST00000010249.6   1.97304      TRUE</span></span>
+<span><span class="co">## ENSMUST00000236942  ENSMUST00000236942.1   1.88198      TRUE</span></span>
+<span><span class="co">## ENSMUST00000237210  ENSMUST00000237210.1   1.63184      TRUE</span></span>
+<span><span class="co">## ENSMUST00000239076  ENSMUST00000239076.1   2.43986      TRUE</span></span>
+<span><span class="co">## ENSMUST00000239082  ENSMUST00000239082.1   2.25606      TRUE</span></span>
+<span><span class="co">##                                     gene      stat       log2FC</span></span>
+<span><span class="co">##                              &lt;character&gt; &lt;numeric&gt;    &lt;numeric&gt;</span></span>
+<span><span class="co">## ENSMUST00000000028 ENSMUSG00000000028.15  9.266667  0.117968928</span></span>
+<span><span class="co">## ENSMUST00000096990 ENSMUSG00000000028.15 -9.166667 -0.127402077</span></span>
+<span><span class="co">## ENSMUST00000103015  ENSMUSG00000000056.7  1.500000  0.000241434</span></span>
+<span><span class="co">## ENSMUST00000151088  ENSMUSG00000000056.7 -0.400000 -0.000289331</span></span>
+<span><span class="co">## ENSMUST00000000058  ENSMUSG00000000058.6  0.466667  0.000391690</span></span>
+<span><span class="co">## ...                                  ...       ...          ...</span></span>
+<span><span class="co">## ENSMUST00000010249  ENSMUSG00000118346.1 10.600000   0.05621211</span></span>
+<span><span class="co">## ENSMUST00000236942  ENSMUSG00000118369.1  4.966667   0.01240679</span></span>
+<span><span class="co">## ENSMUST00000237210  ENSMUSG00000118369.1 -5.833333  -0.01312276</span></span>
+<span><span class="co">## ENSMUST00000239076  ENSMUSG00000118504.1  1.966667   0.00650665</span></span>
+<span><span class="co">## ENSMUST00000239082  ENSMUSG00000118504.1 -0.833333  -0.00684679</span></span>
+<span><span class="co">##                         pvalue    locfdr    qvalue      SYMBOL</span></span>
+<span><span class="co">##                      &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;character&gt;</span></span>
+<span><span class="co">## ENSMUST00000000028  0.00156212 0.0628877 0.0407279       Cdc45</span></span>
+<span><span class="co">## ENSMUST00000096990  0.00169394 0.0661017 0.0420568       Cdc45</span></span>
+<span><span class="co">## ENSMUST00000103015  0.39830881 1.0000000 0.6741643        Narf</span></span>
+<span><span class="co">## ENSMUST00000151088  0.80000389 1.0000000 0.9123067        Narf</span></span>
+<span><span class="co">## ENSMUST00000000058  0.76939264 1.0000000 0.8979261        Cav2</span></span>
+<span><span class="co">## ...                        ...       ...       ...         ...</span></span>
+<span><span class="co">## ENSMUST00000010249 0.000541914 0.0370311 0.0321739    Tmem179b</span></span>
+<span><span class="co">## ENSMUST00000236942 0.043270247 0.4522032 0.2092265          NA</span></span>
+<span><span class="co">## ENSMUST00000237210 0.023930476 0.3250592 0.1540725          NA</span></span>
+<span><span class="co">## ENSMUST00000239076 0.294221342 1.0000000 0.5827746          NA</span></span>
+<span><span class="co">## ENSMUST00000239082 0.614122022 1.0000000 0.8203500          NA</span></span></code></pre>
+<p>Turn ‘y’ into a dataframe here, and save as a different variable. We
+do this to intersect with other lists when making plots, such as genes
+to highlight on the MA plot downstream. Check the dimensions with
+<em>dim()</em> to ensure that it has not changed:</p>
+<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y_rowData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">y_rowData</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 43697    12</span></span></code></pre>
+<p>Here we graph an MA plot to visualize the differential usage of
+transcripts affected by sleep deprivation. An MA plot shows log2FC vs
+the log10mean. Transcripts above M=0 increase in proportion in response
+to the treatment, while transcripts below decrease in proportion in
+response to treatment.</p>
+<p>The transcripts that are farthest away from the y intercept (have the
+largest log10mean values) are the ones most affected by the
+treatment.</p>
+<p>Set colors for the MA plot here: Transcripts that do not have a
+significant change in usage are light grey. Transcripts that are
+significantly affected (qvalue &lt; 0.05) by SD are dark grey.</p>
+<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">Significant_Color</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/RColorBrewer/man/ColorBrewer.html" class="external-link">brewer.pal</a></span><span class="op">(</span><span class="fl">9</span>, <span class="st">"Greys"</span><span class="op">)</span><span class="op">[</span><span class="fl">8</span><span class="op">]</span></span></code></pre></div>
+<p>We will highlight the changes in proportion of <em>Bdnf</em> and
+<em>Homer1.</em></p>
+<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://colorspace.R-Forge.R-project.org/" class="external-link">colorspace</a></span><span class="op">)</span><span class="op">)</span>  <span class="co">#Version 2.1-0</span></span>
+<span></span>
+<span><span class="va">Homer1_202_Color</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://colorspace.R-Forge.R-project.org/reference/lighten.html" class="external-link">darken</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/RColorBrewer/man/ColorBrewer.html" class="external-link">brewer.pal</a></span><span class="op">(</span><span class="fl">12</span>, <span class="st">"Set3"</span><span class="op">)</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span>, <span class="fl">0.1</span><span class="op">)</span></span>
+<span><span class="va">Homer1_203_Color</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://colorspace.R-Forge.R-project.org/reference/lighten.html" class="external-link">darken</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/RColorBrewer/man/ColorBrewer.html" class="external-link">brewer.pal</a></span><span class="op">(</span><span class="fl">12</span>, <span class="st">"Set3"</span><span class="op">)</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, <span class="fl">0.1</span><span class="op">)</span></span>
+<span><span class="va">Homer1_204_Color</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://colorspace.R-Forge.R-project.org/reference/lighten.html" class="external-link">darken</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/RColorBrewer/man/ColorBrewer.html" class="external-link">brewer.pal</a></span><span class="op">(</span><span class="fl">12</span>, <span class="st">"Set3"</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fl">0.1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">Bdnf_201_Color</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://colorspace.R-Forge.R-project.org/reference/lighten.html" class="external-link">darken</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/RColorBrewer/man/ColorBrewer.html" class="external-link">brewer.pal</a></span><span class="op">(</span><span class="fl">12</span>, <span class="st">"Set3"</span><span class="op">)</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>, <span class="fl">0.1</span><span class="op">)</span></span>
+<span><span class="va">Bdnf_205_Color</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://colorspace.R-Forge.R-project.org/reference/lighten.html" class="external-link">darken</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/RColorBrewer/man/ColorBrewer.html" class="external-link">brewer.pal</a></span><span class="op">(</span><span class="fl">12</span>, <span class="st">"Set3"</span><span class="op">)</span><span class="op">[</span><span class="fl">6</span><span class="op">]</span>, <span class="fl">0.1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">Homer1_Colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">Homer1_204_Color</span>, <span class="va">Homer1_203_Color</span>, <span class="va">Homer1_202_Color</span><span class="op">)</span></span>
+<span><span class="va">Bdnf_Colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">Bdnf_201_Color</span>, <span class="va">Bdnf_205_Color</span><span class="op">)</span></span></code></pre></div>
+<p>Load the <em>dplyr</em> package and use <em>filter</em> to keep only
+the significant transcripts of <em>Bdnf</em> and <em>Homer1</em>:</p>
+<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span><span class="op">)</span>  <span class="co">#Version 1.1.1</span></span></code></pre></div>
+<div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">Homer1_DTU</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">y_rowData</span>, <span class="va">SYMBOL</span> <span class="op">==</span> <span class="st">"Homer1"</span> <span class="op">&amp;</span> <span class="va">qvalue</span> <span class="op">&lt;</span></span>
+<span>    <span class="fl">0.05</span><span class="op">)</span></span>
+<span><span class="va">Bdnf_DTU</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">y_rowData</span>, <span class="va">SYMBOL</span> <span class="op">==</span> <span class="st">"Bdnf"</span> <span class="op">&amp;</span> <span class="va">qvalue</span> <span class="op">&lt;</span></span>
+<span>    <span class="fl">0.05</span><span class="op">)</span></span></code></pre></div>
+<p>Use <em>plotMASwish</em> to generate the mean difference plot.
+Include labels and points for <em>Bdnf</em> and <em>Homer1</em> using
+the code below:</p>
+<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">plotMASwish</span><span class="op">(</span><span class="va">y</span>, alpha <span class="op">=</span> <span class="fl">0.05</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">5.5</span><span class="op">)</span>, sigcolor <span class="op">=</span> <span class="va">Significant_Color</span>,</span>
+<span>    cex.axis <span class="op">=</span> <span class="fl">1.3</span>, cex.lab <span class="op">=</span> <span class="fl">1.3</span>, ylab <span class="op">=</span> <span class="st">"log2FC (Proportion)"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="fu">mcols</span><span class="op">(</span><span class="va">y</span><span class="op">)</span>, <span class="va">SYMBOL</span> <span class="op">==</span> <span class="st">"Homer1"</span> <span class="op">&amp;</span> <span class="va">qvalue</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/graphics/text.html" class="external-link">text</a></span><span class="op">(</span><span class="va">log10mean</span>,</span>
+<span>    <span class="va">log2FC</span>, <span class="va">SYMBOL</span>, col <span class="op">=</span> <span class="va">Homer1_Colors</span>, pos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">1</span>, <span class="fl">4</span><span class="op">)</span>, cex <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>    font <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>  <span class="co">#second was 2 before 1</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="fu">mcols</span><span class="op">(</span><span class="va">y</span><span class="op">)</span>, <span class="va">SYMBOL</span> <span class="op">==</span> <span class="st">"Bdnf"</span> <span class="op">&amp;</span> <span class="va">qvalue</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/graphics/text.html" class="external-link">text</a></span><span class="op">(</span><span class="va">log10mean</span>,</span>
+<span>    <span class="va">log2FC</span>, <span class="va">SYMBOL</span>, col <span class="op">=</span> <span class="va">Bdnf_Colors</span>, pos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span>, cex <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>    font <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">Homer1_DTU</span><span class="op">$</span><span class="va">log10mean</span>, <span class="va">Homer1_DTU</span><span class="op">$</span><span class="va">log2FC</span>, pch <span class="op">=</span> <span class="fl">20</span>, col <span class="op">=</span> <span class="va">Homer1_Colors</span>,</span>
+<span>    cex <span class="op">=</span> <span class="fl">0.2</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">Homer1_DTU</span><span class="op">$</span><span class="va">log10mean</span>, <span class="va">Homer1_DTU</span><span class="op">$</span><span class="va">log2FC</span>, pch <span class="op">=</span> <span class="fl">0</span>, col <span class="op">=</span> <span class="va">Homer1_Colors</span>,</span>
+<span>    cex <span class="op">=</span> <span class="fl">1.5</span>, lwd <span class="op">=</span> <span class="fl">1.7</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">Bdnf_DTU</span><span class="op">$</span><span class="va">log10mean</span>, <span class="va">Bdnf_DTU</span><span class="op">$</span><span class="va">log2FC</span>, pch <span class="op">=</span> <span class="fl">20</span>, col <span class="op">=</span> <span class="va">Bdnf_Colors</span>,</span>
+<span>    cex <span class="op">=</span> <span class="fl">0.2</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">Bdnf_DTU</span><span class="op">$</span><span class="va">log10mean</span>, <span class="va">Bdnf_DTU</span><span class="op">$</span><span class="va">log2FC</span>, pch <span class="op">=</span> <span class="fl">0</span>, col <span class="op">=</span> <span class="va">Bdnf_Colors</span>,</span>
+<span>    cex <span class="op">=</span> <span class="fl">1.5</span>, lwd <span class="op">=</span> <span class="fl">1.7</span><span class="op">)</span></span></code></pre></div>
+<p><img src="figure/unnamed-chunk-49-1.png" alt="plot of chunk unnamed-chunk-49" style="display: block; margin: auto;"></p>
+<p>Write text file using the code below. Select columns to include in
+the text file. These lists will then be annotated in Perl with the gene
+name and description.</p>
+<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"log10mean"</span>, <span class="st">"log2FC"</span>, <span class="st">"pvalue"</span>, <span class="st">"qvalue"</span><span class="op">)</span></span>
+<span><span class="va">y_filter</span> <span class="op">&lt;-</span> <span class="fu">mcols</span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span>
+<span><span class="va">y_filter</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">y_filter</span><span class="op">)</span><span class="op">[</span>, <span class="va">cols</span><span class="op">]</span></span>
+<span><span class="va">y_filter</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">y_filter</span>, <span class="va">qvalue</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">y_filter</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 2314    4</span></span></code></pre>
+<div class="sourceCode" id="cb82"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.table</a></span><span class="op">(</span><span class="va">y_filter</span>, file <span class="op">=</span> <span class="st">"DTU_Significant_k=4.txt"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
+</h3>
+<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## R version 4.2.2 (2022-10-31)</span></span>
+<span><span class="co">## Platform: x86_64-apple-darwin17.0 (64-bit)</span></span>
+<span><span class="co">## Running under: macOS Ventura 13.2</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## Matrix products: default</span></span>
+<span><span class="co">## LAPACK: /Library/Frameworks/R.framework/Versions/4.2/Resources/lib/libRlapack.dylib</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## locale:</span></span>
+<span><span class="co">## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attached base packages:</span></span>
+<span><span class="co">## [1] stats4    stats     graphics  grDevices utils     datasets </span></span>
+<span><span class="co">## [7] methods   base     </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## other attached packages:</span></span>
+<span><span class="co">##  [1] dplyr_1.1.1                 colorspace_2.1-0           </span></span>
+<span><span class="co">##  [3] GenomicFeatures_1.50.4      org.Mm.eg.db_3.16.0        </span></span>
+<span><span class="co">##  [5] AnnotationDbi_1.60.2        RUVSeq_1.32.0              </span></span>
+<span><span class="co">##  [7] edgeR_3.40.2                limma_3.54.2               </span></span>
+<span><span class="co">##  [9] EDASeq_2.32.0               ShortRead_1.56.1           </span></span>
+<span><span class="co">## [11] GenomicAlignments_1.34.1    Rsamtools_2.14.0           </span></span>
+<span><span class="co">## [13] Biostrings_2.66.0           XVector_0.38.0             </span></span>
+<span><span class="co">## [15] BiocParallel_1.32.6         RColorBrewer_1.1-3         </span></span>
+<span><span class="co">## [17] fishpond_2.4.1              tximeta_1.16.1             </span></span>
+<span><span class="co">## [19] SummarizedExperiment_1.28.0 Biobase_2.58.0             </span></span>
+<span><span class="co">## [21] GenomicRanges_1.50.2        GenomeInfoDb_1.34.9        </span></span>
+<span><span class="co">## [23] IRanges_2.32.0              S4Vectors_0.36.2           </span></span>
+<span><span class="co">## [25] BiocGenerics_0.44.0         MatrixGenerics_1.10.0      </span></span>
+<span><span class="co">## [27] matrixStats_0.63.0          knitr_1.42                 </span></span>
+<span><span class="co">## [29] BiocStyle_2.26.0           </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## loaded via a namespace (and not attached):</span></span>
+<span><span class="co">##   [1] readxl_1.4.2                  AnnotationHub_3.6.0          </span></span>
+<span><span class="co">##   [3] aroma.light_3.28.0            BiocFileCache_2.6.1          </span></span>
+<span><span class="co">##   [5] shades_1.4.0                  plyr_1.8.8                   </span></span>
+<span><span class="co">##   [7] lazyeval_0.2.2                splines_4.2.2                </span></span>
+<span><span class="co">##   [9] ggplot2_3.4.2                 digest_0.6.31                </span></span>
+<span><span class="co">##  [11] ensembldb_2.22.0              htmltools_0.5.5              </span></span>
+<span><span class="co">##  [13] fansi_1.0.4                   magrittr_2.0.3               </span></span>
+<span><span class="co">##  [15] memoise_2.0.1                 svMisc_1.2.3                 </span></span>
+<span><span class="co">##  [17] R.utils_2.12.2                prettyunits_1.1.1            </span></span>
+<span><span class="co">##  [19] jpeg_0.1-10                   blob_1.2.4                   </span></span>
+<span><span class="co">##  [21] rappdirs_0.3.3                xfun_0.38                    </span></span>
+<span><span class="co">##  [23] crayon_1.5.2                  RCurl_1.98-1.12              </span></span>
+<span><span class="co">##  [25] jsonlite_1.8.4                tximport_1.26.1              </span></span>
+<span><span class="co">##  [27] glue_1.6.2                    gtable_0.3.3                 </span></span>
+<span><span class="co">##  [29] zlibbioc_1.44.0               DelayedArray_0.24.0          </span></span>
+<span><span class="co">##  [31] SingleCellExperiment_1.20.1   abind_1.4-5                  </span></span>
+<span><span class="co">##  [33] scales_1.2.1                  DBI_1.1.3                    </span></span>
+<span><span class="co">##  [35] Rcpp_1.0.10                   xtable_1.8-4                 </span></span>
+<span><span class="co">##  [37] progress_1.2.2                bit_4.0.5                    </span></span>
+<span><span class="co">##  [39] httr_1.4.5                    ellipsis_0.3.2               </span></span>
+<span><span class="co">##  [41] pkgconfig_2.0.3               XML_3.99-0.14                </span></span>
+<span><span class="co">##  [43] R.methodsS3_1.8.2             dbplyr_2.3.2                 </span></span>
+<span><span class="co">##  [45] deldir_1.0-6                  locfit_1.5-9.7               </span></span>
+<span><span class="co">##  [47] utf8_1.2.3                    tidyselect_1.2.0             </span></span>
+<span><span class="co">##  [49] rlang_1.1.0                   reshape2_1.4.4               </span></span>
+<span><span class="co">##  [51] later_1.3.0                   munsell_0.5.0                </span></span>
+<span><span class="co">##  [53] BiocVersion_3.16.0            cellranger_1.1.0             </span></span>
+<span><span class="co">##  [55] tools_4.2.2                   cachem_1.0.7                 </span></span>
+<span><span class="co">##  [57] cli_3.6.1                     generics_0.1.3               </span></span>
+<span><span class="co">##  [59] RSQLite_2.3.1                 evaluate_0.20                </span></span>
+<span><span class="co">##  [61] stringr_1.5.0                 fastmap_1.1.1                </span></span>
+<span><span class="co">##  [63] yaml_2.3.7                    bit64_4.0.5                  </span></span>
+<span><span class="co">##  [65] purrr_1.0.1                   KEGGREST_1.38.0              </span></span>
+<span><span class="co">##  [67] AnnotationFilter_1.22.0       mime_0.12                    </span></span>
+<span><span class="co">##  [69] formatR_1.14                  R.oo_1.25.0                  </span></span>
+<span><span class="co">##  [71] xml2_1.3.3                    biomaRt_2.54.1               </span></span>
+<span><span class="co">##  [73] compiler_4.2.2                rstudioapi_0.15.0            </span></span>
+<span><span class="co">##  [75] filelock_1.0.2                curl_5.0.0                   </span></span>
+<span><span class="co">##  [77] png_0.1-8                     interactiveDisplayBase_1.36.0</span></span>
+<span><span class="co">##  [79] tibble_3.2.1                  stringi_1.7.12               </span></span>
+<span><span class="co">##  [81] highr_0.10                    lattice_0.21-8               </span></span>
+<span><span class="co">##  [83] ProtGenerics_1.30.0           Matrix_1.5-4                 </span></span>
+<span><span class="co">##  [85] vctrs_0.6.1                   pillar_1.9.0                 </span></span>
+<span><span class="co">##  [87] lifecycle_1.0.3               BiocManager_1.30.20          </span></span>
+<span><span class="co">##  [89] bitops_1.0-7                  httpuv_1.6.9                 </span></span>
+<span><span class="co">##  [91] patchwork_1.1.2               rtracklayer_1.58.0           </span></span>
+<span><span class="co">##  [93] qvalue_2.30.0                 R6_2.5.1                     </span></span>
+<span><span class="co">##  [95] BiocIO_1.8.0                  latticeExtra_0.6-30          </span></span>
+<span><span class="co">##  [97] hwriter_1.3.2.1               promises_1.2.0.1             </span></span>
+<span><span class="co">##  [99] codetools_0.2-19              MASS_7.3-58.3                </span></span>
+<span><span class="co">## [101] gtools_3.9.4                  rjson_0.2.21                 </span></span>
+<span><span class="co">## [103] withr_2.5.0                   GenomeInfoDbData_1.2.9       </span></span>
+<span><span class="co">## [105] parallel_4.2.2                hms_1.1.3                    </span></span>
+<span><span class="co">## [107] grid_4.2.2                    rmarkdown_2.21               </span></span>
+<span><span class="co">## [109] shiny_1.7.4                   interp_1.1-4                 </span></span>
+<span><span class="co">## [111] restfulr_0.0.15</span></span></code></pre>
+</div>
+</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
 
-      </div>
+        <nav id="toc" data-toggle="toc"><h2 data-toc-skip>Contents</h2>
+    </nav>
+</div>
 
 </div>
 
@@ -108,7 +726,7 @@
 
       <footer><div class="copyright">
   <p></p>
-<p>Developed by Elena Zuin, Dario Righelli, Davide Risso.</p>
+<p>Developed by Elena Zuin, Kaitlyn Ford, Dario Righelli, Davide Risso.</p>
 </div>
 
 <div class="pkgdown">

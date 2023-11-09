@@ -124,13 +124,13 @@
 <h2 id="local-installation">Local installation<a class="anchor" aria-label="anchor" href="#local-installation"></a>
 </h2>
 <p>This tutorial can be installed like an ordinary R package via:</p>
-<pre><code><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://bioconductor.github.io/BiocManager/" class="external-link">"BiocManager"</a></span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<pre><code><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st">"BiocManager"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://remotes.r-lib.org" class="external-link">"remotes"</a></span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="st">"RissoLab/AtlasCortexSD"</span>,</span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocManager/man/install.html" class="external-link">install</a></span><span class="op">(</span><span class="st">"RissoLab/AtlasCortexSD"</span>,</span>
 <span>                     dependencies <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                     build_vignettes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre>
 </div>
@@ -177,6 +177,7 @@
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>Elena Zuin <br><small class="roles"> Author </small>  </li>
+<li>Kaitlyn Ford <br><small class="roles"> Author </small>  </li>
 <li>Dario Righelli <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-1504-3583" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
 <li>Davide Risso <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0001-8508-5012" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
 </ul>
@@ -190,7 +191,7 @@
 
       <footer><div class="copyright">
   <p></p>
-<p>Developed by Elena Zuin, Dario Righelli, Davide Risso.</p>
+<p>Developed by Elena Zuin, Kaitlyn Ford, Dario Righelli, Davide Risso.</p>
 </div>
 
 <div class="pkgdown">

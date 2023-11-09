@@ -86,6 +86,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Cell Type Assignment</h1>
             
+            <h4 data-toc-skip class="date">2023-11-09</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/RissoLab/AtlasCortexSD/blob/HEAD/vignettes/1_ct_anno.Rmd" class="external-link"><code>vignettes/1_ct_anno.Rmd</code></a></small>
       <div class="hidden name"><code>1_ct_anno.Rmd</code></div>
@@ -109,333 +110,444 @@ can be available <a href="https://github.com/PeixotoLab/RNAseq_sleep/tree/main/0
 <h3 id="bioconductor-packages">Bioconductor packages<a class="anchor" aria-label="anchor" href="#bioconductor-packages"></a>
 </h3>
 <p>To identify mitochondrial genes, we retrieve the chromosome location
-of each Ensembl gene with the <em><a href="https://bioconductor.org/packages/3.18/EnsDb.Mmusculus.v79" class="external-link">EnsDb.Mmusculus.v79</a></em>.
-package. We used the Bioconductor <em><a href="https://bioconductor.org/packages/3.18/scuttle" class="external-link">scuttle</a></em>package
+of each Ensembl gene with the <em><a href="https://bioconductor.org/packages/3.16/EnsDb.Mmusculus.v79" class="external-link">EnsDb.Mmusculus.v79</a></em>.
+package. We used the Bioconductor <em><a href="https://bioconductor.org/packages/3.16/scuttle" class="external-link">scuttle</a></em>package
 to detect low quality and damaged droplets. The potential doublets
-removal was implemented in <em><a href="https://bioconductor.org/packages/3.18/scuttle" class="external-link">scuttle</a></em>
+removal was implemented in <em><a href="https://bioconductor.org/packages/3.16/scuttle" class="external-link">scuttle</a></em>
 package. For cell-type assignment reference dataset was made available
 at <a href="https://github.com/drighelli/AllenInstituteBrainData" class="external-link"><em>AllenInstituteBrainData</em></a>.
 Cell annotation was computed using two methods: <a href="https://github.com/satijalab/azimuth" class="external-link"><em>Azimuth</em></a> and
-<em><a href="https://bioconductor.org/packages/3.18/SingleR" class="external-link">SingleR</a></em>.
-We used the <em><a href="https://bioconductor.org/packages/3.18/scuttle" class="external-link">scuttle</a></em>
+<em><a href="https://bioconductor.org/packages/3.16/SingleR" class="external-link">SingleR</a></em>.
+We used the <em><a href="https://bioconductor.org/packages/3.16/scuttle" class="external-link">scuttle</a></em>
 package to create pseudo-bulk. The visualization of the MDS plot was
-implemented in <em><a href="https://bioconductor.org/packages/3.18/muscat" class="external-link">muscat</a></em>
+implemented in <em><a href="https://bioconductor.org/packages/3.16/muscat" class="external-link">muscat</a></em>
 package.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/rmarkdown" class="external-link">rmarkdown</a></span><span class="op">)</span></span>
-<span><span class="co"># BiocManager::install('Seurat', force=TRUE) library(Seurat)</span></span>
-<span><span class="co"># library(SingleCellExperiment) library(EnsDb.Mmusculus.v79)</span></span>
-<span><span class="co"># library(scuttle) library(scran) library(scDblFinder)</span></span>
-<span><span class="co"># library(ggplot2) library(biomaRt) library(muscat)</span></span>
-<span><span class="co"># library(edgeR) library(dplyr) library(AtlasCortexSD) #</span></span>
-<span><span class="co"># Dependencies necessary to reproduce the entire code, not used</span></span>
-<span><span class="co"># in the website # library(Azimuth) # library(SeuratData) #</span></span>
-<span><span class="co"># library(AllenInstituteBrainData)</span></span></code></pre></div>
-<!-- # Data pre-processing -->
-<!-- ## Data setting -->
-<!-- Load single-nuclear RNA-seq dataset. -->
-<!-- ```{r, eval=FALSE} -->
-<!-- url <- "https://zenodo.org/records/10091236/files/sce_mouse_sleep_snrnaseq_complete.rds" -->
-<!-- system(paste0("curl ", url, " -o sce_mouse_sleep_snrnaseq_complete.rds")) -->
-<!-- snrna_data <- readRDS("sce_mouse_sleep_snrnaseq_complete.rds") -->
-<!-- snrna_data -->
-<!-- ``` -->
-<!-- We added the UMI counts of spliced mRNA and introns sharing the same Ensembl ID. To identify mitochondrial genes, we retrieve the chromosome location of each ensembl gene with the EnsDb.Mmusculus.v79 package. We split the data into six SingleCellExperiment objects, one for each mouse. -->
-<!-- ```{r, eval=FALSE} -->
-<!-- # Exons -->
-<!-- exons <- snrna_data[-which(grepl("-I", rownames(snrna_data))), ] -->
-<!-- rownames(exons) <- substring(rownames(exons), 1, 18) -->
-<!-- introns <- snrna_data[which(grepl("-I", rownames(snrna_data))), ] -->
-<!-- rownames(introns) <- substring(rownames(introns), 1, 18) -->
-<!-- # We identified introns and exons with the same Ensembl ID -->
-<!-- same_ensembl <- intersect(rownames(exons), rownames(introns)) -->
-<!-- exons <- exons[same_ensembl, ] -->
-<!-- exons <- exons[order(rownames(exons)), ] -->
-<!-- introns <- introns[same_ensembl, ] -->
-<!-- introns <- introns[order(rownames(introns)), ] -->
-<!-- rownames(snrna_data) <- substring(rownames(snrna_data), 1, 18) -->
-<!-- # Remove the introns and exons with the same Ensembl ID -->
-<!-- # from the single-nuclear data. -->
-<!-- snrna_data <- snrna_data[! rownames(snrna_data) %in% same_ensembl, ] -->
-<!-- # A new SingleCellExperiment object was created, where the sum of the UMI counts -->
-<!-- # of spliced mRNA and introns sharing the same Ensembl ID was added. -->
-<!-- sce <- SingleCellExperiment(assays = list( -->
-<!--   counts = rbind(counts(snrna_data), counts(exons) + counts(introns)) -->
-<!-- )) -->
-<!-- colData(sce) <- colData(snrna_data) -->
-<!-- sce$sample_id[sce$sample_id == "8E"] <- "6E" -->
-<!-- # We created the sleep condition variable -->
-<!-- sce$condition <- sce$sample_id -->
-<!-- sce$condition[grep("C", sce$condition)] <- "HC" # Home Cage (HC) -->
-<!-- sce$condition[grep("E", sce$condition)] <- "SD" # Sleep Deprivated (SD) -->
-<!-- sce$sample_id <- paste(substr(sce$sample_id, 1, 1), sce$condition, sep = "") -->
-<!-- ``` -->
-<!-- ```{r, eval=FALSE} -->
-<!-- # To identify mitochondrial genes, we retrieved the chromosome location of -->
-<!-- # each Ensembl Gene ID. -->
-<!-- ensids <- rownames(sce) -->
-<!-- map <- mapIds(EnsDb.Mmusculus.v79, keys = ensids, -->
-<!--               column = "SEQNAME", keytype = "GENEID") -->
-<!-- stopifnot(length(map) == nrow(sce)) -->
-<!-- rowData(sce)$CHR <- map -->
-<!-- # We split the data into six SingleCellExperiment objects, -->
-<!-- # one for each mouse. -->
-<!-- scelist <- list(sce[, sce$sample_id == "1HC"], sce[, sce$sample_id == "2SD"], -->
-<!--                 sce[, sce$sample_id == "3HC"], sce[, sce$sample_id == "4SD"], -->
-<!--                 sce[, sce$sample_id == "5HC"], sce[, sce$sample_id == "6SD"]) -->
-<!-- ``` -->
-<!-- ## Quality controls -->
-<!-- For each sample, we used the Bioconductor scuttle package to detect low quality and damaged droplets. Particularly, we computed per-cell quality-control metrics with the *perCellQCMetrics* function; these metrics include the sum of UMI counts, the number of detected genes, and the percentage of mitochondrial counts. -->
-<!-- ```{r, eval=FALSE} -->
-<!-- scelist_filt <- list() -->
-<!-- for (i in seq_along(scelist)) { -->
-<!--   stats <- perCellQCMetrics(scelist[[i]], -->
-<!--                             subsets = list(Mito = which(rowData(scelist[[i]])$CHR == "MT"))) -->
-<!--   high_mito <- isOutlier(stats$subsets_Mito_percent, type = "higher") -->
-<!--   colData(scelist[[i]]) <- cbind(colData(scelist[[i]]), stats) -->
-<!--   scelist[[i]]$high_mito <- high_mito -->
-<!--   qc_lib <- isOutlier(scelist[[i]]$sum, log = TRUE, type = "lower") -->
-<!--   qc_nexprs <- isOutlier(scelist[[i]]$detected, log = TRUE, type = "lower") -->
-<!--   discard <- qc_lib | qc_nexprs | scelist[[i]]$high_mito -->
-<!--   scelist_filt[[i]] <- scelist[[i]][, !discard] -->
-<!-- } -->
-<!-- # Log-normalized counts -->
-<!-- scelist_filt <- lapply(scelist_filt, function(x) logNormCounts(x)) -->
-<!-- ``` -->
-<!-- ## Doublets removal -->
-<!-- Lastly, for each sample, we removed potential doublets with the scDblFinder (v1.12.0) package, using the *computeDoubletDensity* function to calculate the scores and the *doubletThresholding* function to set the doublet scores threshold with the *griffiths* method. -->
-<!-- ```{r, eval=FALSE} -->
-<!-- # HVGs were calculated for each sample -->
-<!-- topgs <- lapply(scelist_filt, function(x) getTopHVGs(x, prop = 0.1)) -->
-<!-- for (i in seq_along(scelist_filt)) { -->
-<!--   set.seed(422) -->
-<!--   # Function to calculate the scores -->
-<!--   scores <- computeDoubletDensity(scelist_filt[[i]], subset.row = topgs[[i]]) -->
-<!--   # Function to set the doublet scores threshold -->
-<!--   dbl_calls <- doubletThresholding(data.frame(score = scores), method = "griffiths", returnType = "call") -->
-<!--   colData(scelist_filt[[i]]) <- cbind.DataFrame(colData(scelist_filt[[i]]), dbl_calls, scores) -->
-<!-- } -->
-<!-- scelist_sgl <- lapply(scelist_filt, function(u) u[, !u$dbl_calls == "doublet"]) -->
-<!-- names(scelist_sgl) <- levels(factor(sce$sample_id)) -->
-<!-- scelist_sgl -->
-<!-- ``` -->
-<!-- # Cell-type annotation -->
-<!-- ## Reference dataset -->
-<!-- To identify cell types, we used the [Allen Whole Cortex & Hippocampus - 10x genomics (v2021)](https://www.sciencedirect.com/science/article/pii/S0092867421005018) as reference dataset . This dataset was imported by the *AllenInstituteBrainData* function of the AllenInstituteBrainData. We then selected the “Non-Neuronal”, “Glutamatergic” and “GABAergic” clusters coming from the Visual Cortex (VIS, VISl, VISm, VISp) to annotate our dataset. For computational issues, we selected a random subset of 100,000 cortical cells. -->
-<!-- Cell annotation was computed with an automatic and reference-based method: Azimuth. -->
-<!-- ```{r, eval=FALSE} -->
-<!-- # Load reference dataset -->
-<!-- reference <- AllenInstituteBrainData("Allen_Mouse_2021") -->
-<!-- rownames(reference) <- rowData(reference)$X -->
-<!-- reference -->
-<!-- # Select clusters from the Visual Cortex -->
-<!-- reference <- reference[, c(reference$region_label == "VIS" | -->
-<!--                              reference$region_label == "VISl" | -->
-<!--                              reference$region_label == "VISm" | -->
-<!--                              reference$region_label == "VISp")] -->
-<!-- # Select cortex labels -->
-<!-- reference <- reference[, !is.na(reference$subclass_label) & reference$subclass_label != ""] -->
-<!-- reference <- reference[, -which(grepl("ENT", reference$subclass_label))] -->
-<!-- reference <- reference[, -which(grepl("PPP", reference$subclass_label))] -->
-<!-- reference <- reference[, -which(grepl("CR", reference$subclass_label))] -->
-<!-- reference <- reference[, -which(grepl("Meis", reference$subclass_label))] -->
-<!-- reference <- reference[, -which(grepl("SUB", reference$subclass_label))] -->
-<!-- # For computational issues, we decided to select 100,000 cortical random cells. -->
-<!-- # First, all cell was selected from the cell types with less than 100 cells. -->
-<!-- no_random <- reference[, c(reference$subclass_label == "SMC-Peri" | -->
-<!--                              reference$subclass_label == "VLMC")] -->
-<!-- # The resting cell types were selected. -->
-<!-- reference <- reference[, !c(reference$subclass_label == "SMC-Peri" | -->
-<!--                               reference$subclass_label == "VLMC")] -->
-<!-- df <- data.frame(colData(reference)) -->
-<!-- # First, we randomly selected 100 cells for each cell type. -->
-<!-- set.seed(23) -->
-<!-- random <- df %>% group_by(subclass_label) %>% slice_sample(n = 100) -->
-<!-- random100 <- reference[, colnames(reference) %in% random$sample_name] -->
-<!-- reference <- reference[, !(colnames(reference) %in% random$sample_name)] -->
-<!-- # Then, we randomly selected 98046 of the resting cells -->
-<!-- set.seed(23) -->
-<!-- reference <- reference[, sample(colnames(reference), 98046)] -->
-<!-- reference <- cbind(reference, random100, no_random) -->
-<!-- reference -->
-<!-- ``` -->
-<!-- ## Cell-type annotation with Azimuth -->
-<!-- For the Azimuth method, the reference data was converted into a Seurat object and into a Azimuth compatible object, using the *AzimuthReference* function of the Azimuth package. Then query samples were merged and were converted into a Seurat object. -->
-<!-- ```{r, eval=FALSE} -->
-<!-- # First, the reference dataset was converted into Seurat object -->
-<!-- counts <- as.matrix(counts(reference)) -->
-<!-- coldata <- colData(reference) -->
-<!-- reference_so <- CreateSeuratObject(counts = counts, -->
-<!--                                    meta.data = data.frame(coldata)) -->
-<!-- # And we created a compatible object for Azimuth cell annotation -->
-<!-- reference_so <- SCTransform(reference_so, assay = "RNA", new.assay.name = "SCT", -->
-<!--                             variable.features.n = 2000, verbose = TRUE, -->
-<!--                             conserve.memory = TRUE) -->
-<!-- reference_so <- RunPCA(reference_so, assay = "SCT", npcs = 50, verbose = FALSE, -->
-<!--                        reduction.name = "PCA", return.model = TRUE) -->
-<!-- reference_so <- RunUMAP(reference_so, assay = "SCT", reduction = "PCA", -->
-<!--                         dims = seq_len(50), seed.use = 1, verbose = FALSE, -->
-<!--                         reduction.name = "umap", return.model = TRUE) -->
-<!-- reference_so$subclass_label <- as.factor(reference_so$subclass_label) -->
-<!-- Idents(object = reference_so) <- "subclass_label" -->
-<!-- # Azimuth-compatible object -->
-<!-- reference_azimuth <- AzimuthReference(reference_so, refUMAP = "umap", -->
-<!--                                       refDR = "PCA", refAssay = "SCT", -->
-<!--                                       dims = 1:50, metadata = c("subclass_label"), -->
-<!--                                       verbose = TRUE) -->
-<!-- # save reference in a folder called "reference" -->
-<!-- ref_dir <- "reference/" -->
-<!-- SaveAnnoyIndex(object = reference_azimuth[["refdr.annoy.neighbors"]], -->
-<!--                file = file.path(ref_dir, "idx.annoy")) -->
-<!-- saveRDS(object = reference_azimuth, file = file.path(ref_dir, "ref.Rds")) -->
-<!-- ``` -->
-<!-- The query dataset was converted into a Seurat object. -->
-<!-- ```{r, eval=FALSE} -->
-<!-- # The six SingleCellExperiment were combined and converted into a Seurat object. -->
-<!-- counts <- cbind(counts(scelist_sgl[[1]]), counts(scelist_sgl[[2]]), -->
-<!--                 counts(scelist_sgl[[3]]), counts(scelist_sgl[[4]]), -->
-<!--                 counts(scelist_sgl[[5]]), counts(scelist_sgl[[6]])) -->
-<!-- sample_id <- c(scelist_sgl[[1]]$sample_id, scelist_sgl[[2]]$sample_id, -->
-<!--                scelist_sgl[[3]]$sample_id, scelist_sgl[[4]]$sample_id, -->
-<!--                scelist_sgl[[5]]$sample_id, scelist_sgl[[6]]$sample_id) -->
-<!-- condition <- c(scelist_sgl[[1]]$condition, scelist_sgl[[2]]$condition, -->
-<!--                scelist_sgl[[3]]$condition, scelist_sgl[[4]]$condition, -->
-<!--                scelist_sgl[[5]]$condition, scelist_sgl[[6]]$condition) -->
-<!-- sce_obj <-  SingleCellExperiment(assays = list(counts = counts)) -->
-<!-- sce_obj$sample_id <- sample_id -->
-<!-- sce_obj$condition <- condition -->
-<!-- colnames(sce_obj) <- paste(colnames(sce_obj), sce_obj$sample_id, sep = "_") -->
-<!-- # SCE object was converted into a Seurat object -->
-<!-- seurat_obj <- CreateSeuratObject(counts = counts(sce_obj), -->
-<!--                                  meta.data = data.frame(colData(sce_obj))) -->
-<!-- ``` -->
-<!-- Cell annotation was computed using the *RunAzimuth* function of the Azimuth package. The t-SNE and the UMAP embeddings were computed using the *RunTSNE* and *RunUMAP* functions of the Seurat package with seed.use = 1. -->
-<!-- ```{r, eval=FALSE} -->
-<!-- # Cell-type annotation with Azimuth -->
-<!-- seurat_obj <- RunAzimuth(seurat_obj, reference = "reference/") -->
-<!-- # Dimensional reduction -->
-<!-- seurat_obj <- RunTSNE(seurat_obj, reduction = "integrated_dr", -->
-<!--                       dims = seq_len(20), seed.use = 1, do.fast = TRUE, -->
-<!--                       verbose = FALSE, reduction.name = "TSNE") -->
-<!-- seurat_obj <- RunUMAP(seurat_obj, reduction = "integrated_dr", -->
-<!--                       dims = seq_len(20), seed.use = 1, verbose = FALSE, -->
-<!--                       reduction.name = "UMAP") -->
-<!-- ``` -->
-<!-- ```{r, echo=FALSE} -->
-<!-- url <- "https://zenodo.org/records/10091236/files/snrna_seurat_annot.rds" -->
-<!-- system(paste0("curl ", url, " -o snrna_seurat_annot.rds")) -->
-<!-- seurat_obj <- readRDS("snrna_seurat_annot.rds") -->
-<!-- ``` -->
-<!-- ## Dimensional reduction visualization -->
-<!-- To visualize the assigned labels in two dimensions, the UMAP embeddings were computed using the *DimPlot* function of the Seurat package, with option *reduction = “integrated_dr”*, where *“integrated_dr”* is the supervised principal component analysis obtained by the Azimuth method. -->
-<!-- ```{r} -->
-<!-- # Palette color creation -->
-<!-- label_color <- c("Astro", "Car3", "Endo", "L2/3 IT CTX", "L4/5 IT CTX", "L5 IT CTX", "L5 PT CTX", "L5/6 NP CTX", "L6 CT CTX", "L6 IT CTX" , "L6b CTX", "Lamp5", "Micro-PVM", "Oligo", "Pvalb",    "SMC-Peri", "Sncg", "Sst", "Sst Chodl", "Vip", "VLMC") -->
-<!-- subclass_color <- c("#957b46", "#5100FF", "#c95f3f", "#0BE652", "#00E5E5", "#50B2AD", "#0D5B78",   "#3E9E64",  "#2D8CB8" ,  "#A19922",   "#7044AA",   "#DA808C", "#94AF97", "#744700", "#D93137",   "#4c1130" ,  "#ffff00",   "#FF9900", "#B1B10C",   "#B864CC",   "#a9bd4f") -->
-<!-- names(subclass_color) <- label_color -->
-<!-- umap_plot <- DimPlot(seurat_obj, reduction = "UMAP", group.by = "predicted.subclass_label")+ -->
-<!--   NoLegend() + labs(x = "UMAP1", y="UMAP2") + ggtitle("") + -->
-<!--   scale_color_manual(values = subclass_color) -->
-<!-- umap_plot <- LabelClusters(umap_plot, id = "predicted.subclass_label",  fontface = "bold", color = "black", size=2) -->
-<!-- umap_plot <- umap_plot + theme(axis.text=element_text(size=7), axis.title=element_text(size=7)) -->
-<!-- umap_plot -->
-<!-- ``` -->
-<!-- # Multidimensional Scaling (MDS) -->
-<!-- For the next analysis, cell-types with more than 500 cells were selected. -->
-<!-- ```{r} -->
-<!-- # Add the Azimuth labels into the SingleCellExperiment object -->
-<!-- sce_obj$azimuth_labels <- seurat_obj$predicted.subclass_label -->
-<!-- # Cell-types with less than 500 cells were removed -->
-<!-- sce_obj <- sce_obj[, !c(sce_obj$azimuth_labels == "Car3" | -->
-<!--                           sce_obj$azimuth_labels == "Endo" | -->
-<!--                           sce_obj$azimuth_labels == "Lamp5" | -->
-<!--                           sce_obj$azimuth_labels == "Sncg" | -->
-<!--                           sce_obj$azimuth_labels == "Sst Chodl" | -->
-<!--                           sce_obj$azimuth_labels == "VLMC")] -->
-<!-- ``` -->
-<!-- We created the pseudo-bulk samples with the function *aggregateAcrossCells* of the scuttle package. In other words, we computed sum counts values for each feature for each cell-type and mouse. -->
-<!-- ```{r} -->
-<!-- # Pseudo-bulk creation -->
-<!-- snrna_pb <- aggregateAcrossCells(sce_obj, use.assay.type = "counts", -->
-<!--                                  id = DataFrame(label = sce_obj$azimuth_labels, -->
-<!--                                                 sample = sce_obj$sample_id)) -->
-<!-- colnames(snrna_pb) <- paste(snrna_pb$azimuth_labels, snrna_pb$sample_id, sep = "_") -->
-<!-- snrna_pb <- logNormCounts(snrna_pb) -->
-<!-- # Cell-type class variable was created -->
-<!-- snrna_pb$class <- snrna_pb$azimuth_labels -->
-<!-- snrna_pb$class[which(grepl("CTX", snrna_pb$class))] <- "Glutamatergic" -->
-<!-- snrna_pb$class[which(grepl("-", snrna_pb$class))] <- "Other" -->
-<!-- snrna_pb$class[!(snrna_pb$class == "Astro" | snrna_pb$class == "Oligo" | snrna_pb$class == "Glutamatergic" | -->
-<!--              snrna_pb$class == "Other")] <- "GABAergic" -->
-<!-- ``` -->
-<!-- Finally, a pseudo-bulk level Multidimensional Scaling (MDS) plot was created with the *pbMDS* function of muscat package. Each point represents one subpopulation-sample instance; points are colored by subpopulation and shaped by treatment. -->
-<!-- ```{r} -->
-<!-- neuronal_color <- subclass_color[-c(1:3, 12:14, 16, 17, 19, 21)] -->
-<!-- # MDS plot according to the Glutamatergic labels -->
-<!-- prep_sce <- prepSCE(snrna_pb[, snrna_pb$class == "Glutamatergic"], -->
-<!--                     kid = "azimuth_labels", -->
-<!--                     gid = "condition", -->
-<!--                     sid = "sample_id", -->
-<!--                     drop = TRUE) -->
-<!-- pb <-  aggregateData(prep_sce, assay = "logcounts", -->
-<!--                      by = c("cluster_id", "sample_id")) -->
-<!-- pbMDS(pb) + scale_color_manual(values = neuronal_color[1:8]) + -->
-<!--   labs(col = "Cell-types", shape = "Condition") + -->
-<!--   theme(axis.text = element_text(size = 7), axis.title = element_text(size = 7)) -->
-<!-- # MDS plot according to the GABA-ergic labels -->
-<!-- prep_sce <- prepSCE(snrna_pb[, snrna_pb$class == "GABAergic"], -->
-<!--                     kid = "azimuth_labels", gid = "condition", -->
-<!--                     sid = "sample_id", drop = TRUE) -->
-<!-- pb <-  aggregateData(prep_sce, assay = "logcounts", -->
-<!--                      by = c("cluster_id", "sample_id")) -->
-<!-- pbMDS(pb) + scale_color_manual(values = neuronal_color[9:11]) + -->
-<!--   labs(col = "Cell-types", shape = "Condition") + -->
-<!--   theme(axis.text = element_text(size = 7), axis.title = element_text(size = 7)) -->
-<!-- # MDS plot according to the Non-Neuronal labels -->
-<!-- prep_sce <- prepSCE(snrna_pb[, (snrna_pb$class == "Astro" | -->
-<!--                                   snrna_pb$class == "Oligo" | -->
-<!--                                   snrna_pb$class == "Other")], -->
-<!--                     kid = "azimuth_labels", gid = "condition", -->
-<!--                     sid = "sample_id", drop = TRUE) -->
-<!-- pb <-  aggregateData(prep_sce, assay = "logcounts", -->
-<!--                      by = c("cluster_id", "sample_id")) -->
-<!-- other_color <- subclass_color[c(1, 13:14, 16)] -->
-<!-- pbMDS(pb) + scale_color_manual(values = other_color) + -->
-<!--   labs(col = "Cell-types", shape = "Condition") + -->
-<!--   theme(legend.spacing.y = unit(0, "cm"), axis.text = element_text(size = 7), -->
-<!--         axis.title = element_text(size = 7), legend.title = element_text(size = 7), -->
-<!--         legend.text = element_text(size = 7), legend.key.size = unit(0.4, "cm")) -->
-<!-- # MDS plot according to the neuronal labels on negative control genes -->
-<!-- # Load negative control genes -->
-<!-- negctrl <- read.table("SD_Negative_Controls.txt") -->
-<!-- # Negative control gene was selected inside the pseudo-bulk object -->
-<!-- pb_negctrl <- snrna_pb[rownames(snrna_pb) %in% negctrl$x, ] -->
-<!-- prep_sce <- prepSCE(pb_negctrl[, !(pb_negctrl$class == "Astro" | -->
-<!--                                      pb_negctrl$class == "Oligo" | -->
-<!--                                      pb_negctrl$class == "Other")], -->
-<!--                     kid = "azimuth_labels", gid = "condition", -->
-<!--                     sid = "sample", drop = TRUE) -->
-<!-- pb <-  aggregateData(prep_sce, assay = "logcounts", -->
-<!--                      by = c("cluster_id", "sample_id")) -->
-<!-- pbMDS(pb) + scale_color_manual(values = neuronal_color) + -->
-<!--   labs(col = "Cell-types", shape = "Condition") + -->
-<!--   theme(legend.spacing.y = unit(0, "cm"), axis.text = element_text(size = 7), -->
-<!--         axis.title = element_text(size = 7), legend.title = element_text(size = 7), -->
-<!--         legend.text = element_text(size = 7), legend.key.size = unit(0.4, "cm")) -->
-<!-- ``` -->
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://satijalab.org/seurat" class="external-link">Seurat</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SingleCellExperiment</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">EnsDb.Mmusculus.v79</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">scuttle</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">scran</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/plger/scDblFinder" class="external-link">scDblFinder</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">biomaRt</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/HelenaLC/muscat" class="external-link">muscat</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioinf.wehi.edu.au/edgeR" class="external-link">edgeR</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">Azimuth</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SeuratData</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">AllenInstituteBrainData</span><span class="op">)</span></span></code></pre></div>
 </div>
+</div>
+<div class="section level2">
+<h2 id="data-pre-processing">Data pre-processing<a class="anchor" aria-label="anchor" href="#data-pre-processing"></a>
+</h2>
+<div class="section level3">
+<h3 id="data-setting">Data setting<a class="anchor" aria-label="anchor" href="#data-setting"></a>
+</h3>
+<p>Load single-nuclear RNA-seq dataset.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">url</span> <span class="op">&lt;-</span> <span class="st">"https://zenodo.org/records/10091236/files/sce_mouse_sleep_snrnaseq_complete.rds"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/system.html" class="external-link">system</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"curl "</span>, <span class="va">url</span>, <span class="st">" -o sce_mouse_sleep_snrnaseq_complete.rds"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">snrna_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"sce_mouse_sleep_snrnaseq_complete.rds"</span><span class="op">)</span></span>
+<span><span class="va">snrna_data</span></span></code></pre></div>
+<p>We added the UMI counts of spliced mRNA and introns sharing the same
+Ensembl ID. To identify mitochondrial genes, we retrieve the chromosome
+location of each ensembl gene with the EnsDb.Mmusculus.v79 package. We
+split the data into six SingleCellExperiment objects, one for each
+mouse.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Exons</span></span>
+<span><span class="va">exons</span> <span class="op">&lt;-</span> <span class="va">snrna_data</span><span class="op">[</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"-I"</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">snrna_data</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, <span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">exons</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substring</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">exons</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">18</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">introns</span> <span class="op">&lt;-</span> <span class="va">snrna_data</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"-I"</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">snrna_data</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, <span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">introns</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substring</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">introns</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">18</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># We identified introns and exons with the same Ensembl ID</span></span>
+<span><span class="va">same_ensembl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/setops.html" class="external-link">intersect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">exons</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">introns</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">exons</span> <span class="op">&lt;-</span> <span class="va">exons</span><span class="op">[</span><span class="va">same_ensembl</span>, <span class="op">]</span></span>
+<span><span class="va">exons</span> <span class="op">&lt;-</span> <span class="va">exons</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">exons</span><span class="op">)</span><span class="op">)</span>, <span class="op">]</span></span>
+<span><span class="va">introns</span> <span class="op">&lt;-</span> <span class="va">introns</span><span class="op">[</span><span class="va">same_ensembl</span>, <span class="op">]</span></span>
+<span><span class="va">introns</span> <span class="op">&lt;-</span> <span class="va">introns</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">introns</span><span class="op">)</span><span class="op">)</span>, <span class="op">]</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">snrna_data</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substring</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">snrna_data</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">18</span><span class="op">)</span></span>
+<span><span class="co"># Remove the introns and exons with the same Ensembl ID from the</span></span>
+<span><span class="co"># single-nuclear data.</span></span>
+<span><span class="va">snrna_data</span> <span class="op">&lt;-</span> <span class="va">snrna_data</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">snrna_data</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">same_ensembl</span>,</span>
+<span>    <span class="op">]</span></span>
+<span></span>
+<span><span class="co"># A new SingleCellExperiment object was created, where the sum</span></span>
+<span><span class="co"># of the UMI counts of spliced mRNA and introns sharing the same</span></span>
+<span><span class="co"># Ensembl ID was added.</span></span>
+<span><span class="va">sce</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/SingleCellExperiment.html" class="external-link">SingleCellExperiment</a></span><span class="op">(</span>assays <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">snrna_data</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">exons</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">introns</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sce</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">snrna_data</span><span class="op">)</span></span>
+<span><span class="va">sce</span><span class="op">$</span><span class="va">sample_id</span><span class="op">[</span><span class="va">sce</span><span class="op">$</span><span class="va">sample_id</span> <span class="op">==</span> <span class="st">"8E"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"6E"</span></span>
+<span></span>
+<span><span class="co"># We created the sleep condition variable</span></span>
+<span><span class="va">sce</span><span class="op">$</span><span class="va">condition</span> <span class="op">&lt;-</span> <span class="va">sce</span><span class="op">$</span><span class="va">sample_id</span></span>
+<span><span class="va">sce</span><span class="op">$</span><span class="va">condition</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"C"</span>, <span class="va">sce</span><span class="op">$</span><span class="va">condition</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"HC"</span>  <span class="co"># Home Cage (HC)</span></span>
+<span><span class="va">sce</span><span class="op">$</span><span class="va">condition</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"E"</span>, <span class="va">sce</span><span class="op">$</span><span class="va">condition</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"SD"</span>  <span class="co"># Sleep Deprivated (SD)</span></span>
+<span></span>
+<span><span class="va">sce</span><span class="op">$</span><span class="va">sample_id</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="va">sce</span><span class="op">$</span><span class="va">sample_id</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, <span class="va">sce</span><span class="op">$</span><span class="va">condition</span>,</span>
+<span>    sep <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># To identify mitochondrial genes, we retrieved the chromosome</span></span>
+<span><span class="co"># location of each Ensembl Gene ID.</span></span>
+<span><span class="va">ensids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sce</span><span class="op">)</span></span>
+<span><span class="va">map</span> <span class="op">&lt;-</span> <span class="fu">mapIds</span><span class="op">(</span><span class="va">EnsDb.Mmusculus.v79</span>, keys <span class="op">=</span> <span class="va">ensids</span>, column <span class="op">=</span> <span class="st">"SEQNAME"</span>,</span>
+<span>    keytype <span class="op">=</span> <span class="st">"GENEID"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">map</span><span class="op">)</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">sce</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sce</span><span class="op">)</span><span class="op">$</span><span class="va">CHR</span> <span class="op">&lt;-</span> <span class="va">map</span></span>
+<span></span>
+<span><span class="co"># We split the data into six SingleCellExperiment objects, one</span></span>
+<span><span class="co"># for each mouse.</span></span>
+<span><span class="va">scelist</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">sce</span><span class="op">[</span>, <span class="va">sce</span><span class="op">$</span><span class="va">sample_id</span> <span class="op">==</span> <span class="st">"1HC"</span><span class="op">]</span>, <span class="va">sce</span><span class="op">[</span>, <span class="va">sce</span><span class="op">$</span><span class="va">sample_id</span> <span class="op">==</span></span>
+<span>    <span class="st">"2SD"</span><span class="op">]</span>, <span class="va">sce</span><span class="op">[</span>, <span class="va">sce</span><span class="op">$</span><span class="va">sample_id</span> <span class="op">==</span> <span class="st">"3HC"</span><span class="op">]</span>, <span class="va">sce</span><span class="op">[</span>, <span class="va">sce</span><span class="op">$</span><span class="va">sample_id</span> <span class="op">==</span></span>
+<span>    <span class="st">"4SD"</span><span class="op">]</span>, <span class="va">sce</span><span class="op">[</span>, <span class="va">sce</span><span class="op">$</span><span class="va">sample_id</span> <span class="op">==</span> <span class="st">"5HC"</span><span class="op">]</span>, <span class="va">sce</span><span class="op">[</span>, <span class="va">sce</span><span class="op">$</span><span class="va">sample_id</span> <span class="op">==</span></span>
+<span>    <span class="st">"6SD"</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="quality-controls">Quality controls<a class="anchor" aria-label="anchor" href="#quality-controls"></a>
+</h3>
+<p>For each sample, we used the Bioconductor scuttle package to detect
+low quality and damaged droplets. Particularly, we computed per-cell
+quality-control metrics with the <em>perCellQCMetrics</em> function;
+these metrics include the sum of UMI counts, the number of detected
+genes, and the percentage of mitochondrial counts.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">scelist_filt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">scelist</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">stats</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/perCellQCMetrics.html" class="external-link">perCellQCMetrics</a></span><span class="op">(</span><span class="va">scelist</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span>, subsets <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>Mito <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">scelist</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">$</span><span class="va">CHR</span> <span class="op">==</span></span>
+<span>        <span class="st">"MT"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="va">high_mito</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/isOutlier.html" class="external-link">isOutlier</a></span><span class="op">(</span><span class="va">stats</span><span class="op">$</span><span class="va">subsets_Mito_percent</span>, type <span class="op">=</span> <span class="st">"higher"</span><span class="op">)</span></span>
+<span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">scelist</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">scelist</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="va">stats</span><span class="op">)</span></span>
+<span>    <span class="va">scelist</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">high_mito</span> <span class="op">&lt;-</span> <span class="va">high_mito</span></span>
+<span></span>
+<span>    <span class="va">qc_lib</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/isOutlier.html" class="external-link">isOutlier</a></span><span class="op">(</span><span class="va">scelist</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">sum</span>, log <span class="op">=</span> <span class="cn">TRUE</span>, type <span class="op">=</span> <span class="st">"lower"</span><span class="op">)</span></span>
+<span>    <span class="va">qc_nexprs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/isOutlier.html" class="external-link">isOutlier</a></span><span class="op">(</span><span class="va">scelist</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">detected</span>, log <span class="op">=</span> <span class="cn">TRUE</span>, type <span class="op">=</span> <span class="st">"lower"</span><span class="op">)</span></span>
+<span>    <span class="va">discard</span> <span class="op">&lt;-</span> <span class="va">qc_lib</span> <span class="op">|</span> <span class="va">qc_nexprs</span> <span class="op">|</span> <span class="va">scelist</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">high_mito</span></span>
+<span></span>
+<span>    <span class="va">scelist_filt</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">scelist</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>, <span class="op">!</span><span class="va">discard</span><span class="op">]</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co"># Log-normalized counts</span></span>
+<span><span class="va">scelist_filt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">scelist_filt</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="doublets-removal">Doublets removal<a class="anchor" aria-label="anchor" href="#doublets-removal"></a>
+</h3>
+<p>Lastly, for each sample, we removed potential doublets with the
+scDblFinder (v1.12.0) package, using the <em>computeDoubletDensity</em>
+function to calculate the scores and the <em>doubletThresholding</em>
+function to set the doublet scores threshold with the <em>griffiths</em>
+method.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># HVGs were calculated for each sample</span></span>
+<span><span class="va">topgs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">scelist_filt</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/getTopHVGs.html" class="external-link">getTopHVGs</a></span><span class="op">(</span><span class="va">x</span>, prop <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">scelist_filt</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">422</span><span class="op">)</span></span>
+<span>    <span class="co"># Function to calculate the scores</span></span>
+<span>    <span class="va">scores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scDblFinder/man/computeDoubletDensity.html" class="external-link">computeDoubletDensity</a></span><span class="op">(</span><span class="va">scelist_filt</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span>, subset.row <span class="op">=</span> <span class="va">topgs</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="co"># Function to set the doublet scores threshold</span></span>
+<span>    <span class="va">dbl_calls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scDblFinder/man/doubletThresholding.html" class="external-link">doubletThresholding</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>score <span class="op">=</span> <span class="va">scores</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">"griffiths"</span>,</span>
+<span>        returnType <span class="op">=</span> <span class="st">"call"</span><span class="op">)</span></span>
+<span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">scelist_filt</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu">cbind.DataFrame</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">scelist_filt</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>        <span class="va">dbl_calls</span>, <span class="va">scores</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">scelist_sgl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">scelist_filt</span>, <span class="kw">function</span><span class="op">(</span><span class="va">u</span><span class="op">)</span> <span class="va">u</span><span class="op">[</span>, <span class="op">!</span><span class="va">u</span><span class="op">$</span><span class="va">dbl_calls</span> <span class="op">==</span></span>
+<span>    <span class="st">"doublet"</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">scelist_sgl</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">sce</span><span class="op">$</span><span class="va">sample_id</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">scelist_sgl</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="cell-type-annotation">Cell-type annotation<a class="anchor" aria-label="anchor" href="#cell-type-annotation"></a>
+</h2>
+<div class="section level3">
+<h3 id="reference-dataset">Reference dataset<a class="anchor" aria-label="anchor" href="#reference-dataset"></a>
+</h3>
+<p>To identify cell types, we used the <a href="https://www.sciencedirect.com/science/article/pii/S0092867421005018" class="external-link">Allen
+Whole Cortex &amp; Hippocampus - 10x genomics (v2021)</a> as reference
+dataset . This dataset was imported by the
+<em>AllenInstituteBrainData</em> function of the
+AllenInstituteBrainData. We then selected the “Non-Neuronal”,
+“Glutamatergic” and “GABAergic” clusters coming from the Visual Cortex
+(VIS, VISl, VISm, VISp) to annotate our dataset. For computational
+issues, we selected a random subset of 100,000 cortical cells. Cell
+annotation was computed with an automatic and reference-based method:
+Azimuth.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Load reference dataset</span></span>
+<span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="fu">AllenInstituteBrainData</span><span class="op">(</span><span class="st">"Allen_Mouse_2021"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">reference</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">reference</span><span class="op">)</span><span class="op">$</span><span class="va">X</span></span>
+<span><span class="va">reference</span></span>
+<span></span>
+<span><span class="co"># Select clusters from the Visual Cortex</span></span>
+<span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="va">reference</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">reference</span><span class="op">$</span><span class="va">region_label</span> <span class="op">==</span> <span class="st">"VIS"</span> <span class="op">|</span> <span class="va">reference</span><span class="op">$</span><span class="va">region_label</span> <span class="op">==</span></span>
+<span>    <span class="st">"VISl"</span> <span class="op">|</span> <span class="va">reference</span><span class="op">$</span><span class="va">region_label</span> <span class="op">==</span> <span class="st">"VISm"</span> <span class="op">|</span> <span class="va">reference</span><span class="op">$</span><span class="va">region_label</span> <span class="op">==</span></span>
+<span>    <span class="st">"VISp"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co"># Select cortex labels</span></span>
+<span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="va">reference</span><span class="op">[</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">reference</span><span class="op">$</span><span class="va">subclass_label</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">reference</span><span class="op">$</span><span class="va">subclass_label</span> <span class="op">!=</span></span>
+<span>    <span class="st">""</span><span class="op">]</span></span>
+<span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="va">reference</span><span class="op">[</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"ENT"</span>, <span class="va">reference</span><span class="op">$</span><span class="va">subclass_label</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="va">reference</span><span class="op">[</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"PPP"</span>, <span class="va">reference</span><span class="op">$</span><span class="va">subclass_label</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="va">reference</span><span class="op">[</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"CR"</span>, <span class="va">reference</span><span class="op">$</span><span class="va">subclass_label</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="va">reference</span><span class="op">[</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"Meis"</span>, <span class="va">reference</span><span class="op">$</span><span class="va">subclass_label</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="va">reference</span><span class="op">[</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"SUB"</span>, <span class="va">reference</span><span class="op">$</span><span class="va">subclass_label</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="co"># For computational issues, we decided to select 100,000</span></span>
+<span><span class="co"># cortical random cells.  First, all cell was selected from the</span></span>
+<span><span class="co"># cell types with less than 100 cells.</span></span>
+<span><span class="va">no_random</span> <span class="op">&lt;-</span> <span class="va">reference</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">reference</span><span class="op">$</span><span class="va">subclass_label</span> <span class="op">==</span> <span class="st">"SMC-Peri"</span> <span class="op">|</span></span>
+<span>    <span class="va">reference</span><span class="op">$</span><span class="va">subclass_label</span> <span class="op">==</span> <span class="st">"VLMC"</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="co"># The resting cell types were selected.</span></span>
+<span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="va">reference</span><span class="op">[</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">reference</span><span class="op">$</span><span class="va">subclass_label</span> <span class="op">==</span> <span class="st">"SMC-Peri"</span> <span class="op">|</span></span>
+<span>    <span class="va">reference</span><span class="op">$</span><span class="va">subclass_label</span> <span class="op">==</span> <span class="st">"VLMC"</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">reference</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># First, we randomly selected 100 cells for each cell type.</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">23</span><span class="op">)</span></span>
+<span><span class="va">random</span> <span class="op">&lt;-</span> <span class="va">df</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">subclass_label</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice_sample</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
+<span><span class="va">random100</span> <span class="op">&lt;-</span> <span class="va">reference</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">reference</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">random</span><span class="op">$</span><span class="va">sample_name</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="va">reference</span><span class="op">[</span>, <span class="op">!</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">reference</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">random</span><span class="op">$</span><span class="va">sample_name</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="co"># Then, we randomly selected 98046 of the resting cells</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">23</span><span class="op">)</span></span>
+<span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="va">reference</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">reference</span><span class="op">)</span>, <span class="fl">98046</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">reference</span>, <span class="va">random100</span>, <span class="va">no_random</span><span class="op">)</span></span>
+<span><span class="va">reference</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="cell-type-annotation-with-azimuth">Cell-type annotation with Azimuth<a class="anchor" aria-label="anchor" href="#cell-type-annotation-with-azimuth"></a>
+</h3>
+<p>For the Azimuth method, the reference data was converted into a
+Seurat object and into a Azimuth compatible object, using the
+<em>AzimuthReference</em> function of the Azimuth package. Then query
+samples were merged and were converted into a Seurat object.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># First, the reference dataset was converted into Seurat object</span></span>
+<span><span class="va">counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">reference</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">coldata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">reference</span><span class="op">)</span></span>
+<span><span class="va">reference_so</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mojaveazure.github.io/seurat-object/reference/CreateSeuratObject.html" class="external-link">CreateSeuratObject</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">counts</span>, meta.data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">coldata</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># And we created a compatible object for Azimuth cell annotation</span></span>
+<span><span class="va">reference_so</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/SCTransform.html" class="external-link">SCTransform</a></span><span class="op">(</span><span class="va">reference_so</span>, assay <span class="op">=</span> <span class="st">"RNA"</span>, new.assay.name <span class="op">=</span> <span class="st">"SCT"</span>,</span>
+<span>    variable.features.n <span class="op">=</span> <span class="fl">2000</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span>, conserve.memory <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">reference_so</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/RunPCA.html" class="external-link">RunPCA</a></span><span class="op">(</span><span class="va">reference_so</span>, assay <span class="op">=</span> <span class="st">"SCT"</span>, npcs <span class="op">=</span> <span class="fl">50</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>    reduction.name <span class="op">=</span> <span class="st">"PCA"</span>, return.model <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">reference_so</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/RunUMAP.html" class="external-link">RunUMAP</a></span><span class="op">(</span><span class="va">reference_so</span>, assay <span class="op">=</span> <span class="st">"SCT"</span>, reduction <span class="op">=</span> <span class="st">"PCA"</span>,</span>
+<span>    dims <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fl">50</span><span class="op">)</span>, seed.use <span class="op">=</span> <span class="fl">1</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span>, reduction.name <span class="op">=</span> <span class="st">"umap"</span>,</span>
+<span>    return.model <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">reference_so</span><span class="op">$</span><span class="va">subclass_label</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">reference_so</span><span class="op">$</span><span class="va">subclass_label</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://mojaveazure.github.io/seurat-object/reference/Idents.html" class="external-link">Idents</a></span><span class="op">(</span>object <span class="op">=</span> <span class="va">reference_so</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"subclass_label"</span></span>
+<span></span>
+<span><span class="co"># Azimuth-compatible object</span></span>
+<span><span class="va">reference_azimuth</span> <span class="op">&lt;-</span> <span class="fu">AzimuthReference</span><span class="op">(</span><span class="va">reference_so</span>, refUMAP <span class="op">=</span> <span class="st">"umap"</span>,</span>
+<span>    refDR <span class="op">=</span> <span class="st">"PCA"</span>, refAssay <span class="op">=</span> <span class="st">"SCT"</span>, dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">50</span>, metadata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"subclass_label"</span><span class="op">)</span>,</span>
+<span>    verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># save reference in a folder called 'reference'</span></span>
+<span><span class="va">ref_dir</span> <span class="op">&lt;-</span> <span class="st">"reference/"</span></span>
+<span><span class="fu"><a href="https://satijalab.org/seurat/reference/SaveAnnoyIndex.html" class="external-link">SaveAnnoyIndex</a></span><span class="op">(</span>object <span class="op">=</span> <span class="va">reference_azimuth</span><span class="op">[[</span><span class="st">"refdr.annoy.neighbors"</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>    file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">ref_dir</span>, <span class="st">"idx.annoy"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span>object <span class="op">=</span> <span class="va">reference_azimuth</span>, file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">ref_dir</span>, <span class="st">"ref.Rds"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>The query dataset was converted into a Seurat object.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># The six SingleCellExperiment were combined and converted into</span></span>
+<span><span class="co"># a Seurat object.</span></span>
+<span><span class="va">counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">4</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">5</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">6</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sample_id</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">sample_id</span>, <span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">sample_id</span>,</span>
+<span>    <span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">sample_id</span>, <span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">4</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">sample_id</span>, <span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">5</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">sample_id</span>,</span>
+<span>    <span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">6</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">sample_id</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">condition</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">condition</span>, <span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">condition</span>,</span>
+<span>    <span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">condition</span>, <span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">4</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">condition</span>, <span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">5</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">condition</span>,</span>
+<span>    <span class="va">scelist_sgl</span><span class="op">[[</span><span class="fl">6</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">condition</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sce_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/SingleCellExperiment.html" class="external-link">SingleCellExperiment</a></span><span class="op">(</span>assays <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">counts</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">sce_obj</span><span class="op">$</span><span class="va">sample_id</span> <span class="op">&lt;-</span> <span class="va">sample_id</span></span>
+<span><span class="va">sce_obj</span><span class="op">$</span><span class="va">condition</span> <span class="op">&lt;-</span> <span class="va">condition</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">sce_obj</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">sce_obj</span><span class="op">)</span>, <span class="va">sce_obj</span><span class="op">$</span><span class="va">sample_id</span>, sep <span class="op">=</span> <span class="st">"_"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># SCE object was converted into a Seurat object</span></span>
+<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mojaveazure.github.io/seurat-object/reference/CreateSeuratObject.html" class="external-link">CreateSeuratObject</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sce_obj</span><span class="op">)</span>, meta.data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sce_obj</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Cell annotation was computed using the <em>RunAzimuth</em> function
+of the Azimuth package. The t-SNE and the UMAP embeddings were computed
+using the <em>RunTSNE</em> and <em>RunUMAP</em> functions of the Seurat
+package with seed.use = 1.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Cell-type annotation with Azimuth</span></span>
+<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu">RunAzimuth</span><span class="op">(</span><span class="va">seurat_obj</span>, reference <span class="op">=</span> <span class="st">"reference/"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Dimensional reduction</span></span>
+<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/RunTSNE.html" class="external-link">RunTSNE</a></span><span class="op">(</span><span class="va">seurat_obj</span>, reduction <span class="op">=</span> <span class="st">"integrated_dr"</span>, dims <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fl">20</span><span class="op">)</span>,</span>
+<span>    seed.use <span class="op">=</span> <span class="fl">1</span>, do.fast <span class="op">=</span> <span class="cn">TRUE</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span>, reduction.name <span class="op">=</span> <span class="st">"TSNE"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/RunUMAP.html" class="external-link">RunUMAP</a></span><span class="op">(</span><span class="va">seurat_obj</span>, reduction <span class="op">=</span> <span class="st">"integrated_dr"</span>, dims <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fl">20</span><span class="op">)</span>,</span>
+<span>    seed.use <span class="op">=</span> <span class="fl">1</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span>, reduction.name <span class="op">=</span> <span class="st">"UMAP"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="dimensional-reduction-visualization">Dimensional reduction visualization<a class="anchor" aria-label="anchor" href="#dimensional-reduction-visualization"></a>
+</h3>
+<p>To visualize the assigned labels in two dimensions, the UMAP
+embeddings were computed using the <em>DimPlot</em> function of the
+Seurat package, with option <em>reduction = “integrated_dr”</em>, where
+<em>“integrated_dr”</em> is the supervised principal component analysis
+obtained by the Azimuth method.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Palette color creation</span></span>
+<span><span class="va">label_color</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Astro"</span>, <span class="st">"Car3"</span>, <span class="st">"Endo"</span>, <span class="st">"L2/3 IT CTX"</span>, <span class="st">"L4/5 IT CTX"</span>,</span>
+<span>    <span class="st">"L5 IT CTX"</span>, <span class="st">"L5 PT CTX"</span>, <span class="st">"L5/6 NP CTX"</span>, <span class="st">"L6 CT CTX"</span>, <span class="st">"L6 IT CTX"</span>,</span>
+<span>    <span class="st">"L6b CTX"</span>, <span class="st">"Lamp5"</span>, <span class="st">"Micro-PVM"</span>, <span class="st">"Oligo"</span>, <span class="st">"Pvalb"</span>, <span class="st">"SMC-Peri"</span>,</span>
+<span>    <span class="st">"Sncg"</span>, <span class="st">"Sst"</span>, <span class="st">"Sst Chodl"</span>, <span class="st">"Vip"</span>, <span class="st">"VLMC"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">subclass_color</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#957b46"</span>, <span class="st">"#5100FF"</span>, <span class="st">"#c95f3f"</span>, <span class="st">"#0BE652"</span>, <span class="st">"#00E5E5"</span>,</span>
+<span>    <span class="st">"#50B2AD"</span>, <span class="st">"#0D5B78"</span>, <span class="st">"#3E9E64"</span>, <span class="st">"#2D8CB8"</span>, <span class="st">"#A19922"</span>, <span class="st">"#7044AA"</span>,</span>
+<span>    <span class="st">"#DA808C"</span>, <span class="st">"#94AF97"</span>, <span class="st">"#744700"</span>, <span class="st">"#D93137"</span>, <span class="st">"#4c1130"</span>, <span class="st">"#ffff00"</span>,</span>
+<span>    <span class="st">"#FF9900"</span>, <span class="st">"#B1B10C"</span>, <span class="st">"#B864CC"</span>, <span class="st">"#a9bd4f"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">subclass_color</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">label_color</span></span>
+<span></span>
+<span><span class="va">umap_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">seurat_obj</span>, reduction <span class="op">=</span> <span class="st">"UMAP"</span>, group.by <span class="op">=</span> <span class="st">"predicted.subclass_label"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://satijalab.org/seurat/reference/SeuratTheme.html" class="external-link">NoLegend</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"UMAP1"</span>, y <span class="op">=</span> <span class="st">"UMAP2"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="va">subclass_color</span><span class="op">)</span></span>
+<span><span class="va">umap_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/LabelClusters.html" class="external-link">LabelClusters</a></span><span class="op">(</span><span class="va">umap_plot</span>, id <span class="op">=</span> <span class="st">"predicted.subclass_label"</span>,</span>
+<span>    fontface <span class="op">=</span> <span class="st">"bold"</span>, color <span class="op">=</span> <span class="st">"black"</span>, size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">umap_plot</span> <span class="op">&lt;-</span> <span class="va">umap_plot</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>,</span>
+<span>    axis.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">umap_plot</span></span></code></pre></div>
+<p><img src="figure/unnamed-chunk-13-1.png" alt="plot of chunk unnamed-chunk-13" style="display: block; margin: auto;"></p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="multidimensional-scaling-mds">Multidimensional Scaling (MDS)<a class="anchor" aria-label="anchor" href="#multidimensional-scaling-mds"></a>
+</h2>
+<p>For the next analysis, cell-types with more than 500 cells were
+selected.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Add the Azimuth labels into the SingleCellExperiment object</span></span>
+<span><span class="va">sce_obj</span><span class="op">$</span><span class="va">azimuth_labels</span> <span class="op">&lt;-</span> <span class="va">seurat_obj</span><span class="op">$</span><span class="va">predicted.subclass_label</span></span></code></pre></div>
+<pre><code><span><span class="co">## Error in `[[&lt;-`(`*tmp*`, name, value = c(TTCGCTGCAAGTCGTT_1HC = "Oligo", : 52651 elements in value to replace 51006 elements</span></span></code></pre>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Cell-types with less than 500 cells were removed</span></span>
+<span><span class="va">sce_obj</span> <span class="op">&lt;-</span> <span class="va">sce_obj</span><span class="op">[</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sce_obj</span><span class="op">$</span><span class="va">azimuth_labels</span> <span class="op">==</span> <span class="st">"Car3"</span> <span class="op">|</span> <span class="va">sce_obj</span><span class="op">$</span><span class="va">azimuth_labels</span> <span class="op">==</span></span>
+<span>    <span class="st">"Endo"</span> <span class="op">|</span> <span class="va">sce_obj</span><span class="op">$</span><span class="va">azimuth_labels</span> <span class="op">==</span> <span class="st">"Lamp5"</span> <span class="op">|</span> <span class="va">sce_obj</span><span class="op">$</span><span class="va">azimuth_labels</span> <span class="op">==</span></span>
+<span>    <span class="st">"Sncg"</span> <span class="op">|</span> <span class="va">sce_obj</span><span class="op">$</span><span class="va">azimuth_labels</span> <span class="op">==</span> <span class="st">"Sst Chodl"</span> <span class="op">|</span> <span class="va">sce_obj</span><span class="op">$</span><span class="va">azimuth_labels</span> <span class="op">==</span></span>
+<span>    <span class="st">"VLMC"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<p>We created the pseudo-bulk samples with the function
+<em>aggregateAcrossCells</em> of the scuttle package. In other words, we
+computed sum counts values for each feature for each cell-type and
+mouse.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Pseudo-bulk creation</span></span>
+<span><span class="va">snrna_pb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/aggregateAcrossCells.html" class="external-link">aggregateAcrossCells</a></span><span class="op">(</span><span class="va">sce_obj</span>, use.assay.type <span class="op">=</span> <span class="st">"counts"</span>,</span>
+<span>    id <span class="op">=</span> <span class="fu">DataFrame</span><span class="op">(</span>label <span class="op">=</span> <span class="va">sce_obj</span><span class="op">$</span><span class="va">azimuth_labels</span>, sample <span class="op">=</span> <span class="va">sce_obj</span><span class="op">$</span><span class="va">sample_id</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">snrna_pb</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">snrna_pb</span><span class="op">$</span><span class="va">azimuth_labels</span>, <span class="va">snrna_pb</span><span class="op">$</span><span class="va">sample_id</span>,</span>
+<span>    sep <span class="op">=</span> <span class="st">"_"</span><span class="op">)</span></span>
+<span><span class="va">snrna_pb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">snrna_pb</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Cell-type class variable was created</span></span>
+<span><span class="va">snrna_pb</span><span class="op">$</span><span class="va">class</span> <span class="op">&lt;-</span> <span class="va">snrna_pb</span><span class="op">$</span><span class="va">azimuth_labels</span></span>
+<span><span class="va">snrna_pb</span><span class="op">$</span><span class="va">class</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"CTX"</span>, <span class="va">snrna_pb</span><span class="op">$</span><span class="va">class</span><span class="op">)</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"Glutamatergic"</span></span>
+<span></span>
+<span><span class="va">snrna_pb</span><span class="op">$</span><span class="va">class</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"-"</span>, <span class="va">snrna_pb</span><span class="op">$</span><span class="va">class</span><span class="op">)</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"Other"</span></span>
+<span></span>
+<span><span class="va">snrna_pb</span><span class="op">$</span><span class="va">class</span><span class="op">[</span><span class="op">!</span><span class="op">(</span><span class="va">snrna_pb</span><span class="op">$</span><span class="va">class</span> <span class="op">==</span> <span class="st">"Astro"</span> <span class="op">|</span> <span class="va">snrna_pb</span><span class="op">$</span><span class="va">class</span> <span class="op">==</span> <span class="st">"Oligo"</span> <span class="op">|</span></span>
+<span>    <span class="va">snrna_pb</span><span class="op">$</span><span class="va">class</span> <span class="op">==</span> <span class="st">"Glutamatergic"</span> <span class="op">|</span> <span class="va">snrna_pb</span><span class="op">$</span><span class="va">class</span> <span class="op">==</span> <span class="st">"Other"</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"GABAergic"</span></span></code></pre></div>
+<p>Finally, a pseudo-bulk level Multidimensional Scaling (MDS) plot was
+created with the <em>pbMDS</em> function of muscat package. Each point
+represents one subpopulation-sample instance; points are colored by
+subpopulation and shaped by treatment.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">neuronal_color</span> <span class="op">&lt;-</span> <span class="va">subclass_color</span><span class="op">[</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fl">12</span><span class="op">:</span><span class="fl">14</span>, <span class="fl">16</span>, <span class="fl">17</span>, <span class="fl">19</span>, <span class="fl">21</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="co"># MDS plot according to the Glutamatergic labels</span></span>
+<span><span class="va">prep_sce</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/muscat/man/prepSCE.html" class="external-link">prepSCE</a></span><span class="op">(</span><span class="va">snrna_pb</span><span class="op">[</span>, <span class="va">snrna_pb</span><span class="op">$</span><span class="va">class</span> <span class="op">==</span> <span class="st">"Glutamatergic"</span><span class="op">]</span>,</span>
+<span>    kid <span class="op">=</span> <span class="st">"azimuth_labels"</span>, gid <span class="op">=</span> <span class="st">"condition"</span>, sid <span class="op">=</span> <span class="st">"sample_id"</span>,</span>
+<span>    drop <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">pb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/muscat/man/aggregateData.html" class="external-link">aggregateData</a></span><span class="op">(</span><span class="va">prep_sce</span>, assay <span class="op">=</span> <span class="st">"logcounts"</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cluster_id"</span>,</span>
+<span>    <span class="st">"sample_id"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/muscat/man/pbMDS.html" class="external-link">pbMDS</a></span><span class="op">(</span><span class="va">pb</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="va">neuronal_color</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">8</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>col <span class="op">=</span> <span class="st">"Cell-types"</span>,</span>
+<span>    shape <span class="op">=</span> <span class="st">"Condition"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>,</span>
+<span>    axis.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="figure/unnamed-chunk-16-1.png" alt="plot of chunk unnamed-chunk-16" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># MDS plot according to the GABA-ergic labels</span></span>
+<span><span class="va">prep_sce</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/muscat/man/prepSCE.html" class="external-link">prepSCE</a></span><span class="op">(</span><span class="va">snrna_pb</span><span class="op">[</span>, <span class="va">snrna_pb</span><span class="op">$</span><span class="va">class</span> <span class="op">==</span> <span class="st">"GABAergic"</span><span class="op">]</span>, kid <span class="op">=</span> <span class="st">"azimuth_labels"</span>,</span>
+<span>    gid <span class="op">=</span> <span class="st">"condition"</span>, sid <span class="op">=</span> <span class="st">"sample_id"</span>, drop <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">pb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/muscat/man/aggregateData.html" class="external-link">aggregateData</a></span><span class="op">(</span><span class="va">prep_sce</span>, assay <span class="op">=</span> <span class="st">"logcounts"</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cluster_id"</span>,</span>
+<span>    <span class="st">"sample_id"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/muscat/man/pbMDS.html" class="external-link">pbMDS</a></span><span class="op">(</span><span class="va">pb</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="va">neuronal_color</span><span class="op">[</span><span class="fl">9</span><span class="op">:</span><span class="fl">11</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>col <span class="op">=</span> <span class="st">"Cell-types"</span>,</span>
+<span>    shape <span class="op">=</span> <span class="st">"Condition"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>,</span>
+<span>    axis.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="figure/unnamed-chunk-16-2.png" alt="plot of chunk unnamed-chunk-16" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># MDS plot according to the Non-Neuronal labels</span></span>
+<span><span class="va">prep_sce</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/muscat/man/prepSCE.html" class="external-link">prepSCE</a></span><span class="op">(</span><span class="va">snrna_pb</span><span class="op">[</span>, <span class="op">(</span><span class="va">snrna_pb</span><span class="op">$</span><span class="va">class</span> <span class="op">==</span> <span class="st">"Astro"</span> <span class="op">|</span> <span class="va">snrna_pb</span><span class="op">$</span><span class="va">class</span> <span class="op">==</span></span>
+<span>    <span class="st">"Oligo"</span> <span class="op">|</span> <span class="va">snrna_pb</span><span class="op">$</span><span class="va">class</span> <span class="op">==</span> <span class="st">"Other"</span><span class="op">)</span><span class="op">]</span>, kid <span class="op">=</span> <span class="st">"azimuth_labels"</span>,</span>
+<span>    gid <span class="op">=</span> <span class="st">"condition"</span>, sid <span class="op">=</span> <span class="st">"sample_id"</span>, drop <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">pb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/muscat/man/aggregateData.html" class="external-link">aggregateData</a></span><span class="op">(</span><span class="va">prep_sce</span>, assay <span class="op">=</span> <span class="st">"logcounts"</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cluster_id"</span>,</span>
+<span>    <span class="st">"sample_id"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">other_color</span> <span class="op">&lt;-</span> <span class="va">subclass_color</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">13</span><span class="op">:</span><span class="fl">14</span>, <span class="fl">16</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/muscat/man/pbMDS.html" class="external-link">pbMDS</a></span><span class="op">(</span><span class="va">pb</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="va">other_color</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>col <span class="op">=</span> <span class="st">"Cell-types"</span>,</span>
+<span>    shape <span class="op">=</span> <span class="st">"Condition"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.spacing.y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0</span>, <span class="st">"cm"</span><span class="op">)</span>,</span>
+<span>    axis.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>, axis.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>,</span>
+<span>    legend.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>, legend.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>,</span>
+<span>    legend.key.size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0.4</span>, <span class="st">"cm"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="figure/unnamed-chunk-16-3.png" alt="plot of chunk unnamed-chunk-16" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># MDS plot according to the neuronal labels on negative control</span></span>
+<span><span class="co"># genes Load negative control genes</span></span>
+<span><span class="va">negctrl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.table</a></span><span class="op">(</span><span class="st">"SD_Negative_Controls.txt"</span><span class="op">)</span></span>
+<span><span class="co"># Negative control gene was selected inside the pseudo-bulk</span></span>
+<span><span class="co"># object</span></span>
+<span><span class="va">pb_negctrl</span> <span class="op">&lt;-</span> <span class="va">snrna_pb</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">snrna_pb</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">negctrl</span><span class="op">$</span><span class="va">x</span>, <span class="op">]</span></span>
+<span></span>
+<span><span class="va">prep_sce</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/muscat/man/prepSCE.html" class="external-link">prepSCE</a></span><span class="op">(</span><span class="va">pb_negctrl</span><span class="op">[</span>, <span class="op">!</span><span class="op">(</span><span class="va">pb_negctrl</span><span class="op">$</span><span class="va">class</span> <span class="op">==</span> <span class="st">"Astro"</span> <span class="op">|</span> <span class="va">pb_negctrl</span><span class="op">$</span><span class="va">class</span> <span class="op">==</span></span>
+<span>    <span class="st">"Oligo"</span> <span class="op">|</span> <span class="va">pb_negctrl</span><span class="op">$</span><span class="va">class</span> <span class="op">==</span> <span class="st">"Other"</span><span class="op">)</span><span class="op">]</span>, kid <span class="op">=</span> <span class="st">"azimuth_labels"</span>,</span>
+<span>    gid <span class="op">=</span> <span class="st">"condition"</span>, sid <span class="op">=</span> <span class="st">"sample"</span>, drop <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">pb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/muscat/man/aggregateData.html" class="external-link">aggregateData</a></span><span class="op">(</span><span class="va">prep_sce</span>, assay <span class="op">=</span> <span class="st">"logcounts"</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cluster_id"</span>,</span>
+<span>    <span class="st">"sample_id"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/muscat/man/pbMDS.html" class="external-link">pbMDS</a></span><span class="op">(</span><span class="va">pb</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="va">neuronal_color</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>col <span class="op">=</span> <span class="st">"Cell-types"</span>,</span>
+<span>    shape <span class="op">=</span> <span class="st">"Condition"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.spacing.y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0</span>, <span class="st">"cm"</span><span class="op">)</span>,</span>
+<span>    axis.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>, axis.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>,</span>
+<span>    legend.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>, legend.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>,</span>
+<span>    legend.key.size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0.4</span>, <span class="st">"cm"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="figure/unnamed-chunk-16-4.png" alt="plot of chunk unnamed-chunk-16" style="display: block; margin: auto;"></p>
 <div class="section level3">
 <h3 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h3>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## R version 4.2.3 (2023-03-15)</span></span>
+<pre><code><span><span class="co">## R version 4.2.0 (2022-04-22)</span></span>
 <span><span class="co">## Platform: x86_64-pc-linux-gnu (64-bit)</span></span>
-<span><span class="co">## Running under: Ubuntu 22.04.2 LTS</span></span>
+<span><span class="co">## Running under: Ubuntu 20.04.4 LTS</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Matrix products: default</span></span>
-<span><span class="co">## BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3</span></span>
-<span><span class="co">## LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so</span></span>
+<span><span class="co">## BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.9.0</span></span>
+<span><span class="co">## LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.9.0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## locale:</span></span>
 <span><span class="co">##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              </span></span>
@@ -446,25 +558,175 @@ package.</p>
 <span><span class="co">## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## attached base packages:</span></span>
-<span><span class="co">## [1] stats     graphics  grDevices utils     datasets  methods  </span></span>
-<span><span class="co">## [7] base     </span></span>
+<span><span class="co">## [1] stats4    stats     graphics  grDevices utils     datasets </span></span>
+<span><span class="co">## [7] methods   base     </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## other attached packages:</span></span>
-<span><span class="co">## [1] rmarkdown_2.25   BiocStyle_2.30.0</span></span>
+<span><span class="co">##  [1] patchwork_1.1.2                </span></span>
+<span><span class="co">##  [2] ComplexUpset_1.3.3             </span></span>
+<span><span class="co">##  [3] UpSetR_1.4.0                   </span></span>
+<span><span class="co">##  [4] ggrepel_0.9.3                  </span></span>
+<span><span class="co">##  [5] RUVSeq_1.32.0                  </span></span>
+<span><span class="co">##  [6] EDASeq_2.32.0                  </span></span>
+<span><span class="co">##  [7] ShortRead_1.56.1               </span></span>
+<span><span class="co">##  [8] GenomicAlignments_1.34.0       </span></span>
+<span><span class="co">##  [9] Rsamtools_2.14.0               </span></span>
+<span><span class="co">## [10] Biostrings_2.66.0              </span></span>
+<span><span class="co">## [11] XVector_0.38.0                 </span></span>
+<span><span class="co">## [12] BiocParallel_1.32.5            </span></span>
+<span><span class="co">## [13] GEOquery_2.66.0                </span></span>
+<span><span class="co">## [14] BiocManager_1.30.19            </span></span>
+<span><span class="co">## [15] knitr_1.42                     </span></span>
+<span><span class="co">## [16] BiocStyle_2.26.0               </span></span>
+<span><span class="co">## [17] rmarkdown_2.20                 </span></span>
+<span><span class="co">## [18] dplyr_1.0.10                   </span></span>
+<span><span class="co">## [19] AllenInstituteBrainData_0.99.1 </span></span>
+<span><span class="co">## [20] edgeR_3.40.2                   </span></span>
+<span><span class="co">## [21] limma_3.54.1                   </span></span>
+<span><span class="co">## [22] muscat_1.12.1                  </span></span>
+<span><span class="co">## [23] biomaRt_2.54.0                 </span></span>
+<span><span class="co">## [24] ggplot2_3.3.6                  </span></span>
+<span><span class="co">## [25] pbmcsca.SeuratData_3.0.0       </span></span>
+<span><span class="co">## [26] mousecortexref.SeuratData_1.0.0</span></span>
+<span><span class="co">## [27] SeuratData_0.2.2               </span></span>
+<span><span class="co">## [28] Azimuth_0.4.6                  </span></span>
+<span><span class="co">## [29] shinyBS_0.61.1                 </span></span>
+<span><span class="co">## [30] SeuratObject_4.1.3             </span></span>
+<span><span class="co">## [31] Seurat_4.3.0                   </span></span>
+<span><span class="co">## [32] scDblFinder_1.12.0             </span></span>
+<span><span class="co">## [33] scran_1.26.2                   </span></span>
+<span><span class="co">## [34] scuttle_1.8.4                  </span></span>
+<span><span class="co">## [35] EnsDb.Mmusculus.v79_2.99.0     </span></span>
+<span><span class="co">## [36] ensembldb_2.22.0               </span></span>
+<span><span class="co">## [37] AnnotationFilter_1.22.0        </span></span>
+<span><span class="co">## [38] GenomicFeatures_1.50.4         </span></span>
+<span><span class="co">## [39] AnnotationDbi_1.60.0           </span></span>
+<span><span class="co">## [40] SingleCellExperiment_1.20.0    </span></span>
+<span><span class="co">## [41] SummarizedExperiment_1.28.0    </span></span>
+<span><span class="co">## [42] Biobase_2.58.0                 </span></span>
+<span><span class="co">## [43] GenomicRanges_1.50.2           </span></span>
+<span><span class="co">## [44] GenomeInfoDb_1.34.9            </span></span>
+<span><span class="co">## [45] IRanges_2.32.0                 </span></span>
+<span><span class="co">## [46] S4Vectors_0.36.1               </span></span>
+<span><span class="co">## [47] BiocGenerics_0.44.0            </span></span>
+<span><span class="co">## [48] MatrixGenerics_1.10.0          </span></span>
+<span><span class="co">## [49] matrixStats_0.63.0             </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## loaded via a namespace (and not attached):</span></span>
-<span><span class="co">##  [1] knitr_1.45          magrittr_2.0.3      R6_2.5.1           </span></span>
-<span><span class="co">##  [4] ragg_1.2.5          rlang_1.1.1         fastmap_1.1.1      </span></span>
-<span><span class="co">##  [7] stringr_1.5.0       tools_4.2.3         xfun_0.40          </span></span>
-<span><span class="co">## [10] cli_3.6.1           jquerylib_0.1.4     systemfonts_1.0.5  </span></span>
-<span><span class="co">## [13] htmltools_0.5.6.1   yaml_2.3.7          digest_0.6.33      </span></span>
-<span><span class="co">## [16] rprojroot_2.0.3     lifecycle_1.0.3     pkgdown_2.0.7      </span></span>
-<span><span class="co">## [19] textshaping_0.3.7   formatR_1.14        BiocManager_1.30.22</span></span>
-<span><span class="co">## [22] purrr_1.0.2         sass_0.4.7          vctrs_0.6.4        </span></span>
-<span><span class="co">## [25] fs_1.6.3            memoise_2.0.1       glue_1.6.2         </span></span>
-<span><span class="co">## [28] cachem_1.0.8        evaluate_0.22       stringi_1.7.12     </span></span>
-<span><span class="co">## [31] compiler_4.2.3      bslib_0.5.1         desc_1.4.2         </span></span>
-<span><span class="co">## [34] jsonlite_1.8.7</span></span></code></pre>
+<span><span class="co">##   [1] rsvd_1.0.5                ica_1.0-3                </span></span>
+<span><span class="co">##   [3] ps_1.7.2                  rprojroot_2.0.3          </span></span>
+<span><span class="co">##   [5] foreach_1.5.2             lmtest_0.9-40            </span></span>
+<span><span class="co">##   [7] crayon_1.5.2              rbibutils_2.2.13         </span></span>
+<span><span class="co">##   [9] MASS_7.3-58.2             rhdf5filters_1.10.0      </span></span>
+<span><span class="co">##  [11] nlme_3.1-162              backports_1.4.1          </span></span>
+<span><span class="co">##  [13] rlang_1.0.6               ROCR_1.0-11              </span></span>
+<span><span class="co">##  [15] irlba_2.3.5.1             callr_3.7.3              </span></span>
+<span><span class="co">##  [17] nloptr_2.0.3              scater_1.26.1            </span></span>
+<span><span class="co">##  [19] filelock_1.0.2            xgboost_1.7.3.1          </span></span>
+<span><span class="co">##  [21] rjson_0.2.21              bit64_4.0.5              </span></span>
+<span><span class="co">##  [23] glue_1.6.2                sctransform_0.3.5        </span></span>
+<span><span class="co">##  [25] processx_3.8.0            pbkrtest_0.5.2           </span></span>
+<span><span class="co">##  [27] parallel_4.2.0            vipor_0.4.5              </span></span>
+<span><span class="co">##  [29] spatstat.sparse_3.0-0     SeuratDisk_0.0.0.9020    </span></span>
+<span><span class="co">##  [31] shinydashboard_0.7.2      spatstat.geom_3.0-6      </span></span>
+<span><span class="co">##  [33] tidyselect_1.2.0          usethis_2.1.6            </span></span>
+<span><span class="co">##  [35] fitdistrplus_1.1-8        variancePartition_1.28.4 </span></span>
+<span><span class="co">##  [37] XML_3.99-0.13             tidyr_1.2.1              </span></span>
+<span><span class="co">##  [39] zoo_1.8-11                xtable_1.8-4             </span></span>
+<span><span class="co">##  [41] magrittr_2.0.3            evaluate_0.20            </span></span>
+<span><span class="co">##  [43] Rdpack_2.4                cli_3.6.0                </span></span>
+<span><span class="co">##  [45] zlibbioc_1.44.0           hwriter_1.3.2.1          </span></span>
+<span><span class="co">##  [47] miniUI_0.1.1.1            sp_1.6-0                 </span></span>
+<span><span class="co">##  [49] aod_1.3.2                 tinytex_0.44             </span></span>
+<span><span class="co">##  [51] shiny_1.7.4               BiocSingular_1.14.0      </span></span>
+<span><span class="co">##  [53] xfun_0.37                 clue_0.3-64              </span></span>
+<span><span class="co">##  [55] pkgbuild_1.4.0            cluster_2.1.4            </span></span>
+<span><span class="co">##  [57] caTools_1.18.2            KEGGREST_1.38.0          </span></span>
+<span><span class="co">##  [59] clusterGeneration_1.3.7   tibble_3.1.8             </span></span>
+<span><span class="co">##  [61] listenv_0.9.0             png_0.1-8                </span></span>
+<span><span class="co">##  [63] future_1.31.0             withr_2.5.0              </span></span>
+<span><span class="co">##  [65] bitops_1.0-7              plyr_1.8.8               </span></span>
+<span><span class="co">##  [67] cellranger_1.1.0          dqrng_0.3.0              </span></span>
+<span><span class="co">##  [69] pillar_1.8.1              gplots_3.1.3             </span></span>
+<span><span class="co">##  [71] GlobalOptions_0.1.2       cachem_1.0.6             </span></span>
+<span><span class="co">##  [73] fs_1.6.1                  hdf5r_1.3.8              </span></span>
+<span><span class="co">##  [75] GetoptLong_1.0.5          RUnit_0.4.32             </span></span>
+<span><span class="co">##  [77] DelayedMatrixStats_1.20.0 vctrs_0.4.1              </span></span>
+<span><span class="co">##  [79] ellipsis_0.3.2            generics_0.1.3           </span></span>
+<span><span class="co">##  [81] devtools_2.4.5            tools_4.2.0              </span></span>
+<span><span class="co">##  [83] remaCor_0.0.11            beeswarm_0.4.0           </span></span>
+<span><span class="co">##  [85] munsell_0.5.0             DelayedArray_0.24.0      </span></span>
+<span><span class="co">##  [87] pkgload_1.3.2             fastmap_1.1.0            </span></span>
+<span><span class="co">##  [89] compiler_4.2.0            abind_1.4-5              </span></span>
+<span><span class="co">##  [91] httpuv_1.6.8              rtracklayer_1.58.0       </span></span>
+<span><span class="co">##  [93] sessioninfo_1.2.2         plotly_4.10.1            </span></span>
+<span><span class="co">##  [95] GenomeInfoDbData_1.2.9    gridExtra_2.3            </span></span>
+<span><span class="co">##  [97] glmmTMB_1.1.5             lattice_0.20-45          </span></span>
+<span><span class="co">##  [99] deldir_1.0-6              utf8_1.2.3               </span></span>
+<span><span class="co">## [101] later_1.3.0               BiocFileCache_2.6.0      </span></span>
+<span><span class="co">## [103] jsonlite_1.8.4            scales_1.2.1             </span></span>
+<span><span class="co">## [105] ScaledMatrix_1.6.0        pbapply_1.7-0            </span></span>
+<span><span class="co">## [107] sparseMatrixStats_1.10.0  lazyeval_0.2.2           </span></span>
+<span><span class="co">## [109] promises_1.2.0.1          doParallel_1.0.17        </span></span>
+<span><span class="co">## [111] R.utils_2.12.2            latticeExtra_0.6-30      </span></span>
+<span><span class="co">## [113] goftest_1.2-3             spatstat.utils_3.0-1     </span></span>
+<span><span class="co">## [115] reticulate_1.28           cowplot_1.1.1            </span></span>
+<span><span class="co">## [117] blme_1.0-5                statmod_1.5.0            </span></span>
+<span><span class="co">## [119] Rtsne_0.16                uwot_0.1.14              </span></span>
+<span><span class="co">## [121] igraph_1.4.0              HDF5Array_1.26.0         </span></span>
+<span><span class="co">## [123] survival_3.5-0            numDeriv_2016.8-1.1      </span></span>
+<span><span class="co">## [125] yaml_2.3.7                htmltools_0.5.4          </span></span>
+<span><span class="co">## [127] memoise_2.0.1             profvis_0.3.7            </span></span>
+<span><span class="co">## [129] BiocIO_1.8.0              locfit_1.5-9.7           </span></span>
+<span><span class="co">## [131] viridisLite_0.4.1         digest_0.6.31            </span></span>
+<span><span class="co">## [133] assertthat_0.2.1          RhpcBLASctl_0.21-247.1   </span></span>
+<span><span class="co">## [135] mime_0.12                 rappdirs_0.3.3           </span></span>
+<span><span class="co">## [137] RSQLite_2.2.20            future.apply_1.10.0      </span></span>
+<span><span class="co">## [139] remotes_2.4.2             data.table_1.14.6        </span></span>
+<span><span class="co">## [141] urlchecker_1.0.1          blob_1.2.3               </span></span>
+<span><span class="co">## [143] R.oo_1.25.0               labeling_0.4.2           </span></span>
+<span><span class="co">## [145] splines_4.2.0             Rhdf5lib_1.20.0          </span></span>
+<span><span class="co">## [147] googledrive_2.0.0         ProtGenerics_1.30.0      </span></span>
+<span><span class="co">## [149] RCurl_1.98-1.10           broom_1.0.3              </span></span>
+<span><span class="co">## [151] hms_1.1.2                 rhdf5_2.42.0             </span></span>
+<span><span class="co">## [153] colorspace_2.1-0          ggbeeswarm_0.7.1         </span></span>
+<span><span class="co">## [155] shape_1.4.6               Rcpp_1.0.10              </span></span>
+<span><span class="co">## [157] RANN_2.6.1                mvtnorm_1.1-3            </span></span>
+<span><span class="co">## [159] circlize_0.4.15           fansi_1.0.4              </span></span>
+<span><span class="co">## [161] tzdb_0.3.0                parallelly_1.34.0        </span></span>
+<span><span class="co">## [163] R6_2.5.1                  grid_4.2.0               </span></span>
+<span><span class="co">## [165] ggridges_0.5.4            lifecycle_1.0.3          </span></span>
+<span><span class="co">## [167] formatR_1.14              bluster_1.8.0            </span></span>
+<span><span class="co">## [169] curl_5.0.0                googlesheets4_1.0.1      </span></span>
+<span><span class="co">## [171] minqa_1.2.5               leiden_0.4.3             </span></span>
+<span><span class="co">## [173] Matrix_1.5-3              desc_1.4.2               </span></span>
+<span><span class="co">## [175] RcppAnnoy_0.0.20          RColorBrewer_1.1-3       </span></span>
+<span><span class="co">## [177] iterators_1.0.14          spatstat.explore_3.0-6   </span></span>
+<span><span class="co">## [179] TMB_1.9.2                 stringr_1.5.0            </span></span>
+<span><span class="co">## [181] htmlwidgets_1.6.1         beachmat_2.14.0          </span></span>
+<span><span class="co">## [183] polyclip_1.10-4           purrr_0.3.5              </span></span>
+<span><span class="co">## [185] mgcv_1.8-41               ComplexHeatmap_2.14.0    </span></span>
+<span><span class="co">## [187] globals_0.16.2            spatstat.random_3.1-3    </span></span>
+<span><span class="co">## [189] progressr_0.13.0          codetools_0.2-19         </span></span>
+<span><span class="co">## [191] metapod_1.6.0             gtools_3.9.4             </span></span>
+<span><span class="co">## [193] prettyunits_1.1.1         dbplyr_2.3.0             </span></span>
+<span><span class="co">## [195] R.methodsS3_1.8.2         gtable_0.3.1             </span></span>
+<span><span class="co">## [197] DBI_1.1.3                 aroma.light_3.28.0       </span></span>
+<span><span class="co">## [199] highr_0.10                tensor_1.5               </span></span>
+<span><span class="co">## [201] httr_1.4.4                KernSmooth_2.23-20       </span></span>
+<span><span class="co">## [203] stringi_1.7.12            presto_1.0.0             </span></span>
+<span><span class="co">## [205] progress_1.2.2            farver_2.1.1             </span></span>
+<span><span class="co">## [207] reshape2_1.4.4            annotate_1.76.0          </span></span>
+<span><span class="co">## [209] viridis_0.6.2             DT_0.27                  </span></span>
+<span><span class="co">## [211] xml2_1.3.3                boot_1.3-28.1            </span></span>
+<span><span class="co">## [213] shinyjs_2.1.0             BiocNeighbors_1.16.0     </span></span>
+<span><span class="co">## [215] lme4_1.1-31               restfulr_0.0.15          </span></span>
+<span><span class="co">## [217] interp_1.1-3              readr_2.1.4              </span></span>
+<span><span class="co">## [219] geneplotter_1.76.0        scattermore_0.8          </span></span>
+<span><span class="co">## [221] DESeq2_1.38.3             bit_4.0.5                </span></span>
+<span><span class="co">## [223] jpeg_0.1-10               spatstat.data_3.0-0      </span></span>
+<span><span class="co">## [225] pkgconfig_2.0.3           gargle_1.3.0             </span></span>
+<span><span class="co">## [227] lmerTest_3.1-3</span></span></code></pre>
 </div>
 </div>
   </div>
@@ -481,7 +743,7 @@ package.</p>
 
       <footer><div class="copyright">
   <p></p>
-<p>Developed by Elena Zuin, Dario Righelli, Davide Risso.</p>
+<p>Developed by Elena Zuin, Kaitlyn Ford, Dario Righelli, Davide Risso.</p>
 </div>
 
 <div class="pkgdown">

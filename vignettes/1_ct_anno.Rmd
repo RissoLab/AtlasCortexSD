@@ -43,7 +43,7 @@ To identify mitochondrial genes, we retrieve the chromosome location of each Ens
 
 ```{r}
 # library(Seurat)
- library(SingleCellExperiment)
+# library(SingleCellExperiment)
 # library(EnsDb.Mmusculus.v79)
 # library(scuttle)
 # library(scran)

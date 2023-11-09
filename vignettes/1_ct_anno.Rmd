@@ -44,19 +44,20 @@ To identify mitochondrial genes, we retrieve the chromosome location of each Ens
 ```{r}
 library(Seurat)
 library(SingleCellExperiment)
-library(EnsDb.Mmusculus.v79) 
-library(scuttle) 
+library(EnsDb.Mmusculus.v79)
+library(scuttle)
 library(scran)
 library(scDblFinder) 
-# library(Azimuth) 
-# library(SeuratData)
 library(ggplot2)
 library(biomaRt)
 library(muscat)
 library(edgeR)
-# library(AllenInstituteBrainData)
 library(dplyr)
 library(AtlasCortexSD)
+# Dependencies necessary to reproduce the entire code, not used in the website
+# library(Azimuth) 
+# library(SeuratData)
+# library(AllenInstituteBrainData)
 ```
 
 # Data pre-processing

@@ -51,11 +51,6 @@ Suggests:
     ComplexUpset,
     dplyr,
     BiocStyle
-Remotes: 
-    github::drighelli/AllenInstituteBrainData,
-    github::satijalab/azimuth,
-    github::satijalab/seurat-data,
-    github::Bioconductor/SparseArray
 URL: https://RissoLab.github.io/AtlasCortexSD/
 BugReports: https://github.com/RissoLab/AtlasCortexSD/issues/new/choose
 VignetteBuilder: knitr

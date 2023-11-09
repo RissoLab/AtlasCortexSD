@@ -42,24 +42,20 @@ library(BiocStyle)
 To identify mitochondrial genes, we retrieve the chromosome location of each Ensembl gene with the `r Biocpkg("EnsDb.Mmusculus.v79")`.  package. We used the Bioconductor `r Biocpkg("scuttle")`package to detect low quality and damaged droplets. The potential doublets removal was implemented in `r Biocpkg("scuttle")` package. For cell-type assignment reference dataset was made available at [*AllenInstituteBrainData*](https://github.com/drighelli/AllenInstituteBrainData). Cell annotation was computed using two methods: [*Azimuth*](https://github.com/satijalab/azimuth) and `r Biocpkg("SingleR")`. We used the `r Biocpkg("scuttle")` package to create pseudo-bulk. The visualization of the MDS plot was implemented in `r Biocpkg("muscat")` package.
 
 ```{r}
-BiocManager::install(version="3.16", ask=FALSE)
-BiocManager::install("reticulate", ask=FALSE)
-library(reticulate)
+library(Seurat)
 library(SingleCellExperiment)
 library(EnsDb.Mmusculus.v79) 
 library(scuttle) 
 library(scran)
 library(scDblFinder) 
-library(Seurat)
-library(Azimuth) 
-library(SeuratData)
+# library(Azimuth) 
+# library(SeuratData)
 library(ggplot2)
 library(biomaRt)
 library(muscat)
 library(edgeR)
-library(AllenInstituteBrainData)
+# library(AllenInstituteBrainData)
 library(dplyr)
-library(GEOquery)
 library(AtlasCortexSD)
 ```
 

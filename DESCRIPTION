@@ -6,6 +6,10 @@ Authors@R: c(
            family = "Zuin",
            role = c("aut"),
            email = "elena.zuin3@gmail.com"),
+    person(given = "Kaitlyn",
+           family = "Ford",
+           role = c("aut"),
+           email = "kaitlyn.ford@wsu.edu")
     person(given = "Dario",
        family = "Righelli",
        role = c("aut", "cre"),

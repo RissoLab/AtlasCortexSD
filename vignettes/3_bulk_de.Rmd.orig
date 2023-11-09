@@ -1,0 +1,15 @@
+---
+title: "Bulk RNAseq Differential Expression Analysis"
+date: "`r Sys.Date()`"
+#bibliography: biblio.bib
+link-citations: TRUE
+output: 
+    rmarkdown::html_vignette:
+        code_folding: show
+vignette: >
+  %\VignetteIndexEntry{Bulk RNAseq Differential Expression Analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+To be added at submission time.

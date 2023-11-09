@@ -122,19 +122,21 @@ package to create pseudo-bulk. The visualization of the MDS plot was
 implemented in <em><a href="https://bioconductor.org/packages/3.18/muscat" class="external-link">muscat</a></em>
 package.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># library(Seurat) library(SingleCellExperiment)</span></span>
-<span><span class="co"># library(EnsDb.Mmusculus.v79) library(scuttle) library(scran)</span></span>
-<span><span class="co"># library(scDblFinder) library(ggplot2) library(biomaRt)</span></span>
-<span><span class="co"># library(muscat) library(edgeR) library(dplyr)</span></span>
-<span><span class="co"># library(AtlasCortexSD) Dependencies necessary to reproduce the</span></span>
-<span><span class="co"># entire code, not used in the website library(Azimuth)</span></span>
-<span><span class="co"># library(SeuratData) library(AllenInstituteBrainData)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/rmarkdown" class="external-link">rmarkdown</a></span><span class="op">)</span></span>
+<span><span class="co"># BiocManager::install('Seurat', force=TRUE) library(Seurat)</span></span>
+<span><span class="co"># library(SingleCellExperiment) library(EnsDb.Mmusculus.v79)</span></span>
+<span><span class="co"># library(scuttle) library(scran) library(scDblFinder)</span></span>
+<span><span class="co"># library(ggplot2) library(biomaRt) library(muscat)</span></span>
+<span><span class="co"># library(edgeR) library(dplyr) library(AtlasCortexSD) #</span></span>
+<span><span class="co"># Dependencies necessary to reproduce the entire code, not used</span></span>
+<span><span class="co"># in the website # library(Azimuth) # library(SeuratData) #</span></span>
+<span><span class="co"># library(AllenInstituteBrainData)</span></span></code></pre></div>
 <!-- # Data pre-processing -->
 <!-- ## Data setting -->
-<!-- Load single-nuclear RNA-seq dataset.  -->
+<!-- Load single-nuclear RNA-seq dataset. -->
 <!-- ```{r, eval=FALSE} -->
-<!-- url <- "https://zenodo.org/records/10078998/files/sce_mouse_sleep_snrnaseq_complete.rds" -->
-<!-- system(paste0("curl ", url)) -->
+<!-- url <- "https://zenodo.org/records/10091236/files/sce_mouse_sleep_snrnaseq_complete.rds" -->
+<!-- system(paste0("curl ", url, " -o sce_mouse_sleep_snrnaseq_complete.rds")) -->
 <!-- snrna_data <- readRDS("sce_mouse_sleep_snrnaseq_complete.rds") -->
 <!-- snrna_data -->
 <!-- ``` -->
@@ -183,11 +185,11 @@ package.</p>
 <!--                 sce[, sce$sample_id == "5HC"], sce[, sce$sample_id == "6SD"]) -->
 <!-- ``` -->
 <!-- ## Quality controls -->
-<!-- For each sample, we used the Bioconductor scuttle package to detect low quality and damaged droplets. Particularly, we computed per-cell quality-control metrics with the *perCellQCMetrics* function; these metrics include the sum of UMI counts, the number of detected genes, and the percentage of mitochondrial counts.  -->
+<!-- For each sample, we used the Bioconductor scuttle package to detect low quality and damaged droplets. Particularly, we computed per-cell quality-control metrics with the *perCellQCMetrics* function; these metrics include the sum of UMI counts, the number of detected genes, and the percentage of mitochondrial counts. -->
 <!-- ```{r, eval=FALSE} -->
 <!-- scelist_filt <- list() -->
 <!-- for (i in seq_along(scelist)) { -->
-<!--   stats <- perCellQCMetrics(scelist[[i]],  -->
+<!--   stats <- perCellQCMetrics(scelist[[i]], -->
 <!--                             subsets = list(Mito = which(rowData(scelist[[i]])$CHR == "MT"))) -->
 <!--   high_mito <- isOutlier(stats$subsets_Mito_percent, type = "higher") -->
 <!--   colData(scelist[[i]]) <- cbind(colData(scelist[[i]]), stats) -->
@@ -222,7 +224,7 @@ package.</p>
 <!-- To identify cell types, we used the [Allen Whole Cortex & Hippocampus - 10x genomics (v2021)](https://www.sciencedirect.com/science/article/pii/S0092867421005018) as reference dataset . This dataset was imported by the *AllenInstituteBrainData* function of the AllenInstituteBrainData. We then selected the “Non-Neuronal”, “Glutamatergic” and “GABAergic” clusters coming from the Visual Cortex (VIS, VISl, VISm, VISp) to annotate our dataset. For computational issues, we selected a random subset of 100,000 cortical cells. -->
 <!-- Cell annotation was computed with an automatic and reference-based method: Azimuth. -->
 <!-- ```{r, eval=FALSE} -->
-<!-- # Load reference dataset  -->
+<!-- # Load reference dataset -->
 <!-- reference <- AllenInstituteBrainData("Allen_Mouse_2021") -->
 <!-- rownames(reference) <- rowData(reference)$X -->
 <!-- reference -->
@@ -240,10 +242,10 @@ package.</p>
 <!-- reference <- reference[, -which(grepl("SUB", reference$subclass_label))] -->
 <!-- # For computational issues, we decided to select 100,000 cortical random cells. -->
 <!-- # First, all cell was selected from the cell types with less than 100 cells. -->
-<!-- no_random <- reference[, c(reference$subclass_label == "SMC-Peri" |  -->
+<!-- no_random <- reference[, c(reference$subclass_label == "SMC-Peri" | -->
 <!--                              reference$subclass_label == "VLMC")] -->
 <!-- # The resting cell types were selected. -->
-<!-- reference <- reference[, !c(reference$subclass_label == "SMC-Peri" |  -->
+<!-- reference <- reference[, !c(reference$subclass_label == "SMC-Peri" | -->
 <!--                               reference$subclass_label == "VLMC")] -->
 <!-- df <- data.frame(colData(reference)) -->
 <!-- # First, we randomly selected 100 cells for each cell type. -->
@@ -257,8 +259,8 @@ package.</p>
 <!-- reference <- cbind(reference, random100, no_random) -->
 <!-- reference -->
 <!-- ``` -->
-<!-- ## Cell-type annotation with Azimuth  -->
-<!-- For the Azimuth method, the reference data was converted into a Seurat object and into a Azimuth compatible object, using the *AzimuthReference* function of the Azimuth package. Then query samples were merged and were converted into a Seurat object.  -->
+<!-- ## Cell-type annotation with Azimuth -->
+<!-- For the Azimuth method, the reference data was converted into a Seurat object and into a Azimuth compatible object, using the *AzimuthReference* function of the Azimuth package. Then query samples were merged and were converted into a Seurat object. -->
 <!-- ```{r, eval=FALSE} -->
 <!-- # First, the reference dataset was converted into Seurat object -->
 <!-- counts <- as.matrix(counts(reference)) -->
@@ -283,7 +285,7 @@ package.</p>
 <!--                                       verbose = TRUE) -->
 <!-- # save reference in a folder called "reference" -->
 <!-- ref_dir <- "reference/" -->
-<!-- SaveAnnoyIndex(object = reference_azimuth[["refdr.annoy.neighbors"]],  -->
+<!-- SaveAnnoyIndex(object = reference_azimuth[["refdr.annoy.neighbors"]], -->
 <!--                file = file.path(ref_dir, "idx.annoy")) -->
 <!-- saveRDS(object = reference_azimuth, file = file.path(ref_dir, "ref.Rds")) -->
 <!-- ``` -->
@@ -291,20 +293,20 @@ package.</p>
 <!-- ```{r, eval=FALSE} -->
 <!-- # The six SingleCellExperiment were combined and converted into a Seurat object. -->
 <!-- counts <- cbind(counts(scelist_sgl[[1]]), counts(scelist_sgl[[2]]), -->
-<!--                 counts(scelist_sgl[[3]]), counts(scelist_sgl[[4]]),  -->
+<!--                 counts(scelist_sgl[[3]]), counts(scelist_sgl[[4]]), -->
 <!--                 counts(scelist_sgl[[5]]), counts(scelist_sgl[[6]])) -->
-<!-- sample_id <- c(scelist_sgl[[1]]$sample_id, scelist_sgl[[2]]$sample_id,  -->
-<!--                scelist_sgl[[3]]$sample_id, scelist_sgl[[4]]$sample_id,  -->
+<!-- sample_id <- c(scelist_sgl[[1]]$sample_id, scelist_sgl[[2]]$sample_id, -->
+<!--                scelist_sgl[[3]]$sample_id, scelist_sgl[[4]]$sample_id, -->
 <!--                scelist_sgl[[5]]$sample_id, scelist_sgl[[6]]$sample_id) -->
-<!-- condition <- c(scelist_sgl[[1]]$condition, scelist_sgl[[2]]$condition,  -->
-<!--                scelist_sgl[[3]]$condition, scelist_sgl[[4]]$condition,  -->
+<!-- condition <- c(scelist_sgl[[1]]$condition, scelist_sgl[[2]]$condition, -->
+<!--                scelist_sgl[[3]]$condition, scelist_sgl[[4]]$condition, -->
 <!--                scelist_sgl[[5]]$condition, scelist_sgl[[6]]$condition) -->
 <!-- sce_obj <-  SingleCellExperiment(assays = list(counts = counts)) -->
 <!-- sce_obj$sample_id <- sample_id -->
 <!-- sce_obj$condition <- condition -->
 <!-- colnames(sce_obj) <- paste(colnames(sce_obj), sce_obj$sample_id, sep = "_") -->
 <!-- # SCE object was converted into a Seurat object -->
-<!-- seurat_obj <- CreateSeuratObject(counts = counts(sce_obj),  -->
+<!-- seurat_obj <- CreateSeuratObject(counts = counts(sce_obj), -->
 <!--                                  meta.data = data.frame(colData(sce_obj))) -->
 <!-- ``` -->
 <!-- Cell annotation was computed using the *RunAzimuth* function of the Azimuth package. The t-SNE and the UMAP embeddings were computed using the *RunTSNE* and *RunUMAP* functions of the Seurat package with seed.use = 1. -->
@@ -312,27 +314,27 @@ package.</p>
 <!-- # Cell-type annotation with Azimuth -->
 <!-- seurat_obj <- RunAzimuth(seurat_obj, reference = "reference/") -->
 <!-- # Dimensional reduction -->
-<!-- seurat_obj <- RunTSNE(seurat_obj, reduction = "integrated_dr",  -->
-<!--                       dims = seq_len(20), seed.use = 1, do.fast = TRUE,  -->
+<!-- seurat_obj <- RunTSNE(seurat_obj, reduction = "integrated_dr", -->
+<!--                       dims = seq_len(20), seed.use = 1, do.fast = TRUE, -->
 <!--                       verbose = FALSE, reduction.name = "TSNE") -->
-<!-- seurat_obj <- RunUMAP(seurat_obj, reduction = "integrated_dr",  -->
+<!-- seurat_obj <- RunUMAP(seurat_obj, reduction = "integrated_dr", -->
 <!--                       dims = seq_len(20), seed.use = 1, verbose = FALSE, -->
 <!--                       reduction.name = "UMAP") -->
 <!-- ``` -->
 <!-- ```{r, echo=FALSE} -->
-<!-- url <- "https://zenodo.org/records/10078998/files/snrna_seurat_annot.rds" -->
-<!-- system(paste0("curl ", url)) -->
+<!-- url <- "https://zenodo.org/records/10091236/files/snrna_seurat_annot.rds" -->
+<!-- system(paste0("curl ", url, " -o snrna_seurat_annot.rds")) -->
 <!-- seurat_obj <- readRDS("snrna_seurat_annot.rds") -->
 <!-- ``` -->
-<!-- ## Dimensional reduction visualization  -->
+<!-- ## Dimensional reduction visualization -->
 <!-- To visualize the assigned labels in two dimensions, the UMAP embeddings were computed using the *DimPlot* function of the Seurat package, with option *reduction = “integrated_dr”*, where *“integrated_dr”* is the supervised principal component analysis obtained by the Azimuth method. -->
 <!-- ```{r} -->
-<!-- # Palette color creation  -->
+<!-- # Palette color creation -->
 <!-- label_color <- c("Astro", "Car3", "Endo", "L2/3 IT CTX", "L4/5 IT CTX", "L5 IT CTX", "L5 PT CTX", "L5/6 NP CTX", "L6 CT CTX", "L6 IT CTX" , "L6b CTX", "Lamp5", "Micro-PVM", "Oligo", "Pvalb",    "SMC-Peri", "Sncg", "Sst", "Sst Chodl", "Vip", "VLMC") -->
 <!-- subclass_color <- c("#957b46", "#5100FF", "#c95f3f", "#0BE652", "#00E5E5", "#50B2AD", "#0D5B78",   "#3E9E64",  "#2D8CB8" ,  "#A19922",   "#7044AA",   "#DA808C", "#94AF97", "#744700", "#D93137",   "#4c1130" ,  "#ffff00",   "#FF9900", "#B1B10C",   "#B864CC",   "#a9bd4f") -->
 <!-- names(subclass_color) <- label_color -->
 <!-- umap_plot <- DimPlot(seurat_obj, reduction = "UMAP", group.by = "predicted.subclass_label")+ -->
-<!--   NoLegend() + labs(x = "UMAP1", y="UMAP2") + ggtitle("") +  -->
+<!--   NoLegend() + labs(x = "UMAP1", y="UMAP2") + ggtitle("") + -->
 <!--   scale_color_manual(values = subclass_color) -->
 <!-- umap_plot <- LabelClusters(umap_plot, id = "predicted.subclass_label",  fontface = "bold", color = "black", size=2) -->
 <!-- umap_plot <- umap_plot + theme(axis.text=element_text(size=7), axis.title=element_text(size=7)) -->
@@ -354,8 +356,8 @@ package.</p>
 <!-- We created the pseudo-bulk samples with the function *aggregateAcrossCells* of the scuttle package. In other words, we computed sum counts values for each feature for each cell-type and mouse. -->
 <!-- ```{r} -->
 <!-- # Pseudo-bulk creation -->
-<!-- snrna_pb <- aggregateAcrossCells(sce_obj, use.assay.type = "counts",  -->
-<!--                                  id = DataFrame(label = sce_obj$azimuth_labels,  -->
+<!-- snrna_pb <- aggregateAcrossCells(sce_obj, use.assay.type = "counts", -->
+<!--                                  id = DataFrame(label = sce_obj$azimuth_labels, -->
 <!--                                                 sample = sce_obj$sample_id)) -->
 <!-- colnames(snrna_pb) <- paste(snrna_pb$azimuth_labels, snrna_pb$sample_id, sep = "_") -->
 <!-- snrna_pb <- logNormCounts(snrna_pb) -->
@@ -372,7 +374,7 @@ package.</p>
 <!-- # MDS plot according to the Glutamatergic labels -->
 <!-- prep_sce <- prepSCE(snrna_pb[, snrna_pb$class == "Glutamatergic"], -->
 <!--                     kid = "azimuth_labels", -->
-<!--                     gid = "condition",   -->
+<!--                     gid = "condition", -->
 <!--                     sid = "sample_id", -->
 <!--                     drop = TRUE) -->
 <!-- pb <-  aggregateData(prep_sce, assay = "logcounts", -->
@@ -395,7 +397,7 @@ package.</p>
 <!--                                   snrna_pb$class == "Other")], -->
 <!--                     kid = "azimuth_labels", gid = "condition", -->
 <!--                     sid = "sample_id", drop = TRUE) -->
-<!-- pb <-  aggregateData(prep_sce, assay = "logcounts",  -->
+<!-- pb <-  aggregateData(prep_sce, assay = "logcounts", -->
 <!--                      by = c("cluster_id", "sample_id")) -->
 <!-- other_color <- subclass_color[c(1, 13:14, 16)] -->
 <!-- pbMDS(pb) + scale_color_manual(values = other_color) + -->
@@ -413,7 +415,7 @@ package.</p>
 <!--                                      pb_negctrl$class == "Other")], -->
 <!--                     kid = "azimuth_labels", gid = "condition", -->
 <!--                     sid = "sample", drop = TRUE) -->
-<!-- pb <-  aggregateData(prep_sce, assay = "logcounts",  -->
+<!-- pb <-  aggregateData(prep_sce, assay = "logcounts", -->
 <!--                      by = c("cluster_id", "sample_id")) -->
 <!-- pbMDS(pb) + scale_color_manual(values = neuronal_color) + -->
 <!--   labs(col = "Cell-types", shape = "Condition") + -->
@@ -448,7 +450,7 @@ package.</p>
 <span><span class="co">## [7] base     </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## other attached packages:</span></span>
-<span><span class="co">## [1] BiocStyle_2.30.0</span></span>
+<span><span class="co">## [1] rmarkdown_2.25   BiocStyle_2.30.0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## loaded via a namespace (and not attached):</span></span>
 <span><span class="co">##  [1] knitr_1.45          magrittr_2.0.3      R6_2.5.1           </span></span>
@@ -460,9 +462,9 @@ package.</p>
 <span><span class="co">## [19] textshaping_0.3.7   formatR_1.14        BiocManager_1.30.22</span></span>
 <span><span class="co">## [22] purrr_1.0.2         sass_0.4.7          vctrs_0.6.4        </span></span>
 <span><span class="co">## [25] fs_1.6.3            memoise_2.0.1       glue_1.6.2         </span></span>
-<span><span class="co">## [28] cachem_1.0.8        evaluate_0.22       rmarkdown_2.25     </span></span>
-<span><span class="co">## [31] stringi_1.7.12      compiler_4.2.3      bslib_0.5.1        </span></span>
-<span><span class="co">## [34] desc_1.4.2          jsonlite_1.8.7</span></span></code></pre>
+<span><span class="co">## [28] cachem_1.0.8        evaluate_0.22       stringi_1.7.12     </span></span>
+<span><span class="co">## [31] compiler_4.2.3      bslib_0.5.1         desc_1.4.2         </span></span>
+<span><span class="co">## [34] jsonlite_1.8.7</span></span></code></pre>
 </div>
 </div>
   </div>

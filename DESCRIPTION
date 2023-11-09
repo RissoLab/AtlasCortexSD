@@ -9,7 +9,7 @@ Authors@R: c(
     person(given = "Kaitlyn",
            family = "Ford",
            role = c("aut"),
-           email = "kaitlyn.ford@wsu.edu")
+           email = "kaitlyn.ford@wsu.edu"),
     person(given = "Dario",
        family = "Righelli",
        role = c("aut", "cre"),

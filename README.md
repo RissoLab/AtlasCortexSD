@@ -1,6 +1,6 @@
 # A Global Transcriptional Atlas of the Effect of Sleep Loss in the Mouse Cortex
 
-Kaitlyn Ford<sup>1*</sup>, Elena Zuin<sup>2*</sup>, Dario Righelli<sup>3</sup>, Christine Muheim<sup>1</sup>, Elizabeth Medina<sup>1</sup>, Hannah Schoch<sup>1</sup>, Kristan Singletary<sup>1</sup>, Christine Muheim<sup>1</sup>, Marcos G. Frank<sup>1</sup>, Stephanie Hicks<sup>4,5,6,7</sup>, Davide Risso<sup>3</sup> and Lucia Peixoto<sup>1</sup>
+Kaitlyn Ford<sup>1*</sup>, Elena Zuin<sup>2,3*</sup>, Dario Righelli<sup>3</sup>, Christine Muheim<sup>1</sup>, Elizabeth Medina<sup>1</sup>, Hannah Schoch<sup>1</sup>, Kristan Singletary<sup>1</sup>, Christine Muheim<sup>1</sup>, Marcos G. Frank<sup>1</sup>, Stephanie Hicks<sup>4,5,6,7</sup>, Davide Risso<sup>3</sup> and Lucia Peixoto<sup>1</sup>
  
 1. Department of Translational Medicine and Physiology, Washington State University, Spokane, WA 
 2. Department of Biology, University of Padova, Italy
